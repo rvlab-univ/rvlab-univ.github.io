@@ -1,0 +1,351 @@
+[
+	{
+		"id": "pub-01",
+		"title": "PLATER: License-Plate-Aided Monocular 3D Vehicle Pose Refinement with 4D Radar Fusion",
+		"authors": "Gangmin Yu, Chulju Park and Minseong Choi†",
+		"venue": "IEEE Robotics and Automation Letters",
+		"year": 2026,
+		"category": "intl-journal",
+		"underReview": true,
+		"links": [
+			{
+				"label": "video",
+				"url": "https://youtu.be/kQhd0cr3MuE"
+			}
+		]
+	},
+	{
+		"id": "pub-02",
+		"title": "Sampling-Aware Capacity-Feedback Control for Safety-Margin Recovery in Bimanual Grasp-and-Cut Tasks",
+		"authors": "Byeonghyeon Kim, Mingu Kang, Junwoo Lee, Jieon Lee, Jinhyuk Park, Kyounghoon Lee, Jeonghun Kim, Minseong Choi† and Hyung-Tae Seo†",
+		"venue": "Machines",
+		"year": 2026,
+		"category": "intl-journal",
+		"underReview": true,
+		"links": []
+	},
+	{
+		"id": "pub-03",
+		"title": "Vision-Based Control Switching with Sensorless Force Estimation for Robotic Meat Cutting via Imitation Learning",
+		"authors": "Sanghun Yoo*, Jungyu Kim*, Minjun Sung, Kyounghoon Lee, Jeonghun Kim, Hyung-Tae Seo† and Minseong Choi†",
+		"venue": "Sensors",
+		"year": 2026,
+		"category": "intl-journal",
+		"underReview": true,
+		"links": [
+			{
+				"label": "video",
+				"url": "https://youtu.be/w7S2G6j_feM"
+			}
+		]
+	},
+	{
+		"id": "pub-04",
+		"title": "Weighted Center-of-Gravity and Equivariant Polar-Cartesian Representations for LiDAR Odometry and Loop Closure",
+		"authors": "Minyoung Lee, Minseong Choi† and Seungho Han†",
+		"venue": "IEEE Transactions on Instrumentation and Measurement",
+		"year": 2026,
+		"category": "intl-journal",
+		"underReview": true,
+		"links": []
+	},
+	{
+		"id": "pub-05",
+		"title": "UPRuNA: Uncertainty-Protected Distillation for Road Marking Segmentation under Noisy Annotations",
+		"authors": "Seunghoon Yang*, Minseong Choi*, Yeong Sang Park, Keun-Ha Choi and Kyung-Soo Kim",
+		"venue": "IEEE Transactions on Intelligent Transportation Systems",
+		"year": 2026,
+		"category": "intl-journal",
+		"underReview": true,
+		"links": [
+			{
+				"label": "video",
+				"url": "https://youtu.be/ytoQFS1PsT8"
+			}
+		]
+	},
+	{
+		"id": "pub-06",
+		"title": "RoadCode: VectorMap-Based Loop Detection Descriptor via Semantic Road Mapping Using SAM2",
+		"authors": "Seunghoon Yang*, Minseong Choi*, Seungho Han, Keun Ha Choi and Kyung-Soo Kim",
+		"venue": "International Journal of Control, Automation and Systems",
+		"year": 2026,
+		"category": "intl-journal",
+		"underReview": true,
+		"links": []
+	},
+	{
+		"id": "pub-07",
+		"title": "PHAER: Pneumatic Hybrid Actuated Efficient Robot With Under-Constrained Biped Walking",
+		"authors": "Donghyun Kim, Yun-Pyo Hong, Hyung-Tae Seo, Minseong Choi† and Kyung-Soo Kim†",
+		"venue": "IEEE Transactions on Mechatronics",
+		"year": 2026,
+		"category": "intl-journal",
+		"underReview": true,
+		"links": [
+			{
+				"label": "video",
+				"url": "https://youtu.be/RgJKCju_IRQ"
+			}
+		]
+	},
+	{
+		"id": "pub-08",
+		"title": "4D Radar-Camera Based Vector Map SLAM Using Dynamic Object Removal Mask",
+		"authors": "Minseong Choi, Jeonguk Kang and Seungho Han",
+		"venue": "IEEE Transactions on Instrumentation and Measurement",
+		"year": 2026,
+		"category": "intl-journal",
+		"underReview": false,
+		"links": [
+			{
+				"label": "video",
+				"url": "https://www.youtube.com/watch?v=0b5Df30Odtw"
+			}
+		]
+	},
+	{
+		"id": "pub-09",
+		"title": "Fast Superquadric Potential Function for Collision Avoidance of Autonomous Vehicle",
+		"authors": "Seungho Han, Seunghoon Yang and Minseong Choi†",
+		"venue": "IEEE Access",
+		"year": 2026,
+		"category": "intl-journal",
+		"underReview": false,
+		"links": []
+	},
+	{
+		"id": "pub-10",
+		"title": "POW4R: POint-Wise full-velocity estimation using 4d Radar-camera fusion beyond radial limitations",
+		"authors": "Hyun-Yong Jeon, Minseong Choi, Yeongseok Lee, Sangyoon Oh, Seunghoon Yang, Keun Ha Choi and Kyung-Soo Kim",
+		"venue": "IEEE Robotics and Automation Letters",
+		"year": 2025,
+		"category": "intl-journal",
+		"underReview": false,
+		"links": []
+	},
+	{
+		"id": "pub-11",
+		"title": "Adaptive ROI for Collision Warning Mitigation Based on Road Geometry and Kinematics",
+		"authors": "Seungho Han, Minseong Choi, Byeonggwan Jang, Keun Ha Choi and Kyung-Soo Kim",
+		"venue": "IEEE Sensors Journal",
+		"year": 2025,
+		"category": "intl-journal",
+		"underReview": false,
+		"links": []
+	},
+	{
+		"id": "pub-12",
+		"title": "MSC-RAD4R: ROS-Based Automotive Dataset With 4D Radar",
+		"authors": "Minseong Choi, Seunghoon Yang, Seungho Han, Minyoung Lee, Keun Ha Choi and Kyung-Soo Kim",
+		"venue": "IEEE Robotics and Automation Letters",
+		"year": 2023,
+		"category": "intl-journal",
+		"underReview": false,
+		"links": [
+			{
+				"label": "video",
+				"url": "https://www.youtube.com/watch?v=ySjc261NPDk"
+			},
+			{
+				"label": "homepage",
+				"url": "https://mscrad4r.github.io/home/"
+			}
+		]
+	},
+	{
+		"id": "pub-13",
+		"title": "Chattering Reduction of Sliding Mode Control via Nonlinear Disturbance Observer for Anti-lock Braking System and Verification With CarSim Simulation",
+		"authors": "Minseong Choi, Kyunghwan Choi, Minsu Cho, Minyoung Lee and Kyung-Soo Kim",
+		"venue": "International Journal of Automotive Technology (IJAT)",
+		"year": 2023,
+		"category": "intl-journal",
+		"underReview": false,
+		"links": []
+	},
+	{
+		"id": "pub-14",
+		"title": "4D Radar-Camera Sensor Fusion for Robust Vehicle Pose Estimation in Foggy Environments",
+		"authors": "Seunghoon Yang*, Minseong Choi*, Seungho Han, Keun Ha Choi and Kyung-Soo Kim",
+		"venue": "IEEE Access",
+		"year": 2023,
+		"category": "intl-journal",
+		"underReview": false,
+		"links": []
+	},
+	{
+		"id": "pub-15",
+		"title": "Dynamic Control and Simulation of Leader-Follower Vehicle Formation Considering Vehicle Stability",
+		"authors": "Seungho Han, Minseong Choi, et al.",
+		"venue": "International Journal of Control, Automation, and Systems (IJCAS)",
+		"year": 2023,
+		"category": "intl-journal",
+		"underReview": false,
+		"links": []
+	},
+	{
+		"id": "pub-16",
+		"title": "Visual SLAM-Based Robotic Mapping Method for Planetary Construction",
+		"authors": "Sungchul Hong, Antyanta Bangunharcana, Jae-Min Park, Minseong Choi and Hyu-Soung Shin",
+		"venue": "Sensors",
+		"year": 2021,
+		"category": "intl-journal",
+		"underReview": false,
+		"links": []
+	},
+	{
+		"id": "pub-17",
+		"title": "Development of Remote Piping Inspection System with Dual-Mode Locomotion Quadruped Robot",
+		"authors": "Hyun-Bin Kim, Chanseok Kim, Byeong-Il Ham, Jeonguk Kang, Minseong Choi, Keun Ha Choi and Kyung-Soo Kim",
+		"venue": "International Conference on Intelligence Technology and Applications (RiTA)",
+		"year": 2024,
+		"category": "intl-conference",
+		"underReview": false,
+		"award": "Best System Paper Award",
+		"links": []
+	},
+	{
+		"id": "pub-18",
+		"title": "Development of ROS-based Small Unmanned Platform for Acquiring Autonomous Driving Dataset in Various Places and Weather Conditions",
+		"authors": "Ji-Il Park*, Minseong Choi*, et al.",
+		"venue": "IEEE 46th Annual Computers, Software, and Application Conference (COMPSAC)",
+		"year": 2022,
+		"category": "intl-conference",
+		"underReview": false,
+		"links": []
+	},
+	{
+		"id": "pub-19",
+		"title": "Integrated Path Planning and Tracking Control of Autonomous Vehicle for Collision Avoidance Based on Model Predictive Control and Potential Field",
+		"authors": "Chanho Ko, Seungho Han, Minseong Choi and Kyung-Soo Kim",
+		"venue": "20th International Conference on Control, Automation and Systems (ICCAS)",
+		"year": 2020,
+		"category": "intl-conference",
+		"underReview": false,
+		"links": []
+	},
+	{
+		"id": "pub-20",
+		"title": "Swerve 구동 휴머노이드의 객체 목표 탐색을 위한 Holonomic 경로 및 뷰포인트 계획",
+		"authors": "이충헌, 왕석빈, 박영상, 박정완, 최민성†, 조우성†",
+		"venue": "제어로봇시스템학회논문지",
+		"year": 2026,
+		"category": "domestic-journal",
+		"underReview": true,
+		"links": []
+	},
+	{
+		"id": "pub-21",
+		"title": "원근 재투영과 BEV 기반 피치 최적화를 이용한 희소 노면표시 증강 및 의미론적 분할 성능 개선",
+		"authors": "성민준, 김준규, 박정완, 양승훈†, 최민성†",
+		"venue": "제어로봇시스템학회논문지",
+		"year": 2026,
+		"category": "domestic-journal",
+		"underReview": true,
+		"links": []
+	},
+	{
+		"id": "pub-22",
+		"title": "IsaacSim 기반 VR Teleoperation에서 Low-Pass Filter를 이용한 Jitter 저감 및 ACT 정책 학습 적용",
+		"authors": "김도윤, 강민수, 유강민, 서형태, 박영상†, 최민성†",
+		"venue": "제어로봇시스템학회(ICROS)",
+		"year": 2026,
+		"category": "domestic-conference",
+		"underReview": false,
+		"links": []
+	},
+	{
+		"id": "pub-23",
+		"title": "도로 노면 의미론적 분할 기법의 소수 클래스 불균형 해소를 위한 원근변환 기반 데이터 증강 기법",
+		"authors": "성민준, 유강민, 김준규, 한승호, 양승훈†, 최민성†",
+		"venue": "제어로봇시스템학회(ICROS)",
+		"year": 2026,
+		"category": "domestic-conference",
+		"underReview": false,
+		"award": "학부생논문상",
+		"links": []
+	},
+	{
+		"id": "pub-24",
+		"title": "Swerve 구동 휴머노이드를 위한 Holonomic 실내 자율 탐색 알고리즘",
+		"authors": "이충헌, 유강민, 박영상, 최민성†, 조우성†",
+		"venue": "제어로봇시스템학회(ICROS)",
+		"year": 2026,
+		"category": "domestic-conference",
+		"underReview": false,
+		"award": "학부생논문상",
+		"links": []
+	},
+	{
+		"id": "pub-25",
+		"title": "매니퓰레이터를 이용한 2D 라이다의 Point-Wise 좌표변환 기반 3차원 공간 계측",
+		"authors": "이형진, 구덕헌, 서형태, 박지일, 최민성",
+		"venue": "제어로봇시스템학회(ICROS)",
+		"year": 2025,
+		"category": "domestic-conference",
+		"underReview": false,
+		"award": "학부생논문상",
+		"links": []
+	},
+	{
+		"id": "pub-26",
+		"title": "다자유도 매니퓰레이터를 이용한 2D 라이다의 실시간 3차원 공간 계측",
+		"authors": "안성진, 김차훈, 윤동건, 박지일, 최민성†, 서형태†",
+		"venue": "제어로봇시스템학회(ICROS)",
+		"year": 2024,
+		"category": "domestic-conference",
+		"underReview": false,
+		"award": "학부생논문상",
+		"links": []
+	},
+	{
+		"id": "pub-27",
+		"title": "Nonlinear Disturbance Observer 기반 ABS 제어기 시뮬레이션 검증 및 이를 위한 실제 차량 개조",
+		"authors": "최민성, 최효서, 조민수, 김경수",
+		"venue": "한국자동차공학회 춘계학술대회",
+		"year": 2022,
+		"category": "domestic-conference",
+		"underReview": false,
+		"links": []
+	},
+	{
+		"id": "pub-28",
+		"title": "공군 활주로 제설작전 차량의 저속 주행환경 속도제어를 위한 시뮬레이션 검증",
+		"authors": "최효서, 최민성, 박지일, 이영석, 조민수, 한승호, 양승훈, 김경수",
+		"venue": "한국정밀공학회 춘계학술대회",
+		"year": 2022,
+		"category": "domestic-conference",
+		"underReview": false,
+		"links": []
+	},
+	{
+		"id": "pub-29",
+		"title": "라이다를 활용한 공군 활주로 제설작전 차량 편대제어 중 장애물 충돌 방지 시스템을 위한 검증 실험",
+		"authors": "양승훈, 한승호, 박지일, 조민수, 최민성, 이영석, 최효서, 김경수",
+		"venue": "한국정밀공학회 춘계학술대회",
+		"year": 2022,
+		"category": "domestic-conference",
+		"underReview": false,
+		"links": []
+	},
+	{
+		"id": "pub-30",
+		"title": "Extended Kalman Filter 기반 Side Slip Angle 추정 및 이를 기반한 횡방향 Sliding Mode Control 설계",
+		"authors": "최민성, 최효서, 이민영, 차무현, 김경수",
+		"venue": "한국정밀공학회 추계학술대회",
+		"year": 2021,
+		"category": "domestic-conference",
+		"underReview": false,
+		"links": []
+	},
+	{
+		"id": "pub-31",
+		"title": "공군 활주로 제설작전 차량 무인화를 위한 동역학 모델링 및 주행성능 평가를 위한 시뮬레이션 환경구축",
+		"authors": "송형주, 한승호, 최민성, 고찬호, 차무현, 김경수",
+		"venue": "대한기계학회 춘계학술대회",
+		"year": 2020,
+		"category": "domestic-conference",
+		"underReview": false,
+		"links": []
+	}
+]

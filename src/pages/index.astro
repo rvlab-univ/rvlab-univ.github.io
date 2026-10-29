@@ -1,0 +1,335 @@
+---
+import { getCollection } from 'astro:content';
+import NewsCard from '../components/NewsCard.astro';
+import PublicationItem from '../components/PublicationItem.astro';
+import VideoThumb from '../components/VideoThumb.astro';
+import { LAB, PI, RESEARCH_PILLARS } from '../consts';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getSortedPublications } from '../lib/publications';
+
+const news = (await getCollection('news'))
+	.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+	.slice(0, 3);
+const pubs = await getSortedPublications();
+const members = await getCollection('members');
+const projects = await getCollection('projects');
+
+const stats = [
+	{ label: '구성원', value: members.length },
+	{ label: '논문', value: pubs.length },
+	{ label: '연구 과제', value: projects.length },
+	{ label: '특허', value: PI.patents.length },
+];
+const highlights = RESEARCH_PILLARS.flatMap((p) => p.topics.map((t) => ({ ...t, pillar: p.titleEn })));
+---
+
+<BaseLayout>
+	<section slot="hero" class="hero">
+		<div class="hero-inner">
+			<p class="eyebrow">{LAB.university}</p>
+			<h1>{LAB.name}<span>{LAB.fullName}</span></h1>
+			<p class="lead">
+				RV LAB은 경기대학교 전자공학부에서 <strong>자율주행</strong>과 <strong>휴머노이드</strong> 관련 기술을
+				연구하는 연구실입니다.
+			</p>
+			<div class="cta">
+				<a class="btn primary" href="/research">연구 분야 보기</a>
+				<a class="btn" href="/publications">논문 목록</a>
+				<a class="btn" href={LAB.youtube} target="_blank" rel="noopener">▶ YouTube</a>
+			</div>
+			<dl class="stats">
+				{
+					stats.map((s) => (
+						<div>
+							<dt>{s.label}</dt>
+							<dd>{s.value}</dd>
+						</div>
+					))
+				}
+			</dl>
+		</div>
+	</section>
+
+	<section>
+		<div class="section-head">
+			<h2>연구 분야</h2>
+			<a href="/research">자세히 →</a>
+		</div>
+		<ul class="pillars">
+			{
+				RESEARCH_PILLARS.map((p) => (
+					<li>
+						<a class="card pillar" href={`/research#${p.id}`}>
+							<span class="icon" aria-hidden="true">
+								{p.icon}
+							</span>
+							<p class="en">{p.titleEn}</p>
+							<h3>{p.title}</h3>
+							<p class="muted">{p.summary}</p>
+						</a>
+					</li>
+				))
+			}
+		</ul>
+	</section>
+
+	<section>
+		<div class="section-head">
+			<h2>연구 하이라이트</h2>
+			<a href={LAB.youtube} target="_blank" rel="noopener">유튜브 채널 →</a>
+		</div>
+		<ul class="highlights">
+			{
+				highlights.map((h) => (
+					<li>
+						{h.video && <VideoThumb id={h.video} title={h.title} />}
+						<p class="en">{h.pillar}</p>
+						<h3>{h.title}</h3>
+						<p class="muted">{h.summary}</p>
+					</li>
+				))
+			}
+		</ul>
+	</section>
+
+	<section>
+		<div class="section-head">
+			<h2>News!</h2>
+			<a href="/news">전체 보기 →</a>
+		</div>
+		<ul class="news">
+			{
+				news.map((post) => (
+					<li>
+						<NewsCard post={post} />
+					</li>
+				))
+			}
+		</ul>
+	</section>
+
+	<section>
+		<div class="section-head">
+			<h2>최근 논문</h2>
+			<a href="/publications">전체 보기 →</a>
+		</div>
+		<ul class="pubs">
+			{pubs.slice(0, 3).map((pub) => <PublicationItem pub={pub} />)}
+		</ul>
+	</section>
+
+	{
+		LAB.recruiting && (
+			<section class="recruit card">
+				<div>
+					<h2>학부연구생 / 대학원생 환영</h2>
+					<p>
+						위 연구에 관심이 있어 학부연구생·대학원 진학을 원하는 학생은 구글 설문지를 작성한 뒤 지도교수에게
+						메일 바랍니다.
+					</p>
+					<p class="muted small">{LAB.recruitNotice}</p>
+				</div>
+				<a class="btn primary" href={`mailto:${LAB.email}`}>
+					메일 보내기
+				</a>
+			</section>
+		)
+	}
+</BaseLayout>
+
+<style>
+	.hero {
+		padding: 5rem 1rem 4rem;
+		background:
+			radial-gradient(circle at 85% 10%, var(--accent-soft), transparent 55%),
+			linear-gradient(var(--bg-alt), var(--bg));
+		border-bottom: 1px solid var(--border);
+	}
+	.hero-inner {
+		max-width: var(--max-width);
+		margin: 0 auto;
+	}
+	.eyebrow {
+		margin: 0 0 0.5rem;
+		color: var(--accent);
+		font-weight: 700;
+		letter-spacing: 0.04em;
+		font-size: 0.95rem;
+	}
+	.hero h1 {
+		font-size: clamp(2.6rem, 7vw, 4.2rem);
+		letter-spacing: -0.03em;
+	}
+	.hero h1 span {
+		display: block;
+		color: var(--text-muted);
+		font-size: 0.42em;
+		font-weight: 500;
+		letter-spacing: 0;
+	}
+	.lead {
+		max-width: 36em;
+		font-size: 1.15rem;
+	}
+	.cta {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.75rem;
+		margin-top: 1.75rem;
+	}
+	.btn {
+		display: inline-flex;
+		align-items: center;
+		padding: 0.7rem 1.3rem;
+		border: 1px solid var(--border);
+		border-radius: 10px;
+		background: var(--card);
+		color: var(--text);
+		font-weight: 700;
+		text-decoration: none;
+	}
+	.btn:hover {
+		border-color: var(--accent);
+		color: var(--accent);
+	}
+	.btn.primary {
+		border-color: var(--accent);
+		background: var(--accent);
+		color: #fff;
+	}
+	.btn.primary:hover {
+		background: var(--accent-dark);
+		color: #fff;
+	}
+	.stats {
+		display: grid;
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+		gap: 1rem;
+		max-width: 640px;
+		margin: 3rem 0 0;
+	}
+	.stats div {
+		padding-left: 1rem;
+		border-left: 3px solid var(--accent);
+	}
+	.stats dt {
+		color: var(--text-muted);
+		font-size: 0.85rem;
+	}
+	.stats dd {
+		margin: 0;
+		font-size: 1.8rem;
+		font-weight: 700;
+	}
+
+	section + section {
+		margin-top: 4rem;
+	}
+	.section-head {
+		display: flex;
+		align-items: baseline;
+		justify-content: space-between;
+		margin-bottom: 1.25rem;
+	}
+	.section-head a {
+		font-size: 0.95rem;
+		text-decoration: none;
+	}
+	.pillars,
+	.highlights,
+	.news,
+	.pubs {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	.pillars {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+		gap: 1.25rem;
+	}
+	.pillar {
+		display: block;
+		height: 100%;
+		color: var(--text);
+		text-decoration: none;
+		transition:
+			transform 0.15s,
+			border-color 0.15s;
+	}
+	.pillar:hover {
+		transform: translateY(-2px);
+		border-color: var(--accent);
+		color: var(--text);
+	}
+	.icon {
+		display: block;
+		margin-bottom: 0.5rem;
+		font-size: 2rem;
+	}
+	.en {
+		margin: 0;
+		color: var(--accent);
+		font-size: 0.78rem;
+		font-weight: 700;
+		letter-spacing: 0.05em;
+		text-transform: uppercase;
+	}
+	.pillar p:last-child {
+		margin: 0;
+		font-size: 0.95rem;
+	}
+	.highlights {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+		gap: 1.75rem 1.25rem;
+	}
+	.highlights .en {
+		margin-top: 0.75rem;
+	}
+	.highlights h3 {
+		margin: 0.1rem 0 0.25rem;
+		font-size: 1.05rem;
+	}
+	.highlights p.muted {
+		margin: 0;
+		font-size: 0.9rem;
+	}
+	.news {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+		gap: 1rem;
+	}
+	.recruit {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1.5rem;
+		background: var(--accent-soft);
+		border-color: transparent;
+	}
+	.recruit h2 {
+		font-size: 1.3rem;
+	}
+	.recruit p {
+		margin: 0 0 0.4rem;
+	}
+	.small {
+		font-size: 0.85rem;
+	}
+	.recruit .btn {
+		flex: none;
+	}
+	@media (max-width: 720px) {
+		.hero {
+			padding: 3rem 1rem 2.5rem;
+		}
+		.stats {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+		.recruit {
+			flex-direction: column;
+			align-items: flex-start;
+		}
+	}
+</style>

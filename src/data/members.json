@@ -1,0 +1,179 @@
+[
+	{
+		"id": "pi",
+		"name": "최민성",
+		"role": "professor",
+		"research": [
+			"Physical AI, Humanoids",
+			"Autonomous Driving",
+			"SLAM"
+		],
+		"order": 0
+	},
+	{
+		"id": "robot-01",
+		"name": "김도윤",
+		"role": "undergrad",
+		"team": "robot",
+		"research": [
+			"Imitation Learning/VLA",
+			"Model Lightweighting"
+		],
+		"order": 1
+	},
+	{
+		"id": "robot-02",
+		"name": "강민수",
+		"role": "undergrad",
+		"team": "robot",
+		"research": [
+			"Sim2Real"
+		],
+		"order": 2
+	},
+	{
+		"id": "robot-03",
+		"name": "안 현",
+		"role": "undergrad",
+		"team": "robot",
+		"research": [
+			"IsaacSim-Based Data Augmentation"
+		],
+		"order": 3
+	},
+	{
+		"id": "robot-04",
+		"name": "김준규",
+		"role": "undergrad",
+		"team": "robot",
+		"research": [
+			"Imitation Learning"
+		],
+		"order": 4
+	},
+	{
+		"id": "robot-05",
+		"name": "유상준",
+		"role": "undergrad",
+		"team": "robot",
+		"research": [
+			"IsaacSim-Based Data Augmentation"
+		],
+		"order": 5
+	},
+	{
+		"id": "robot-06",
+		"name": "이다민",
+		"role": "undergrad",
+		"team": "robot",
+		"research": [
+			"Humanoids",
+			"Reinforcement Learning"
+		],
+		"order": 6
+	},
+	{
+		"id": "robot-07",
+		"name": "김도연",
+		"role": "undergrad",
+		"team": "robot",
+		"research": [
+			"Robot Vision"
+		],
+		"order": 7
+	},
+	{
+		"id": "robot-08",
+		"name": "강근영",
+		"role": "undergrad",
+		"team": "robot",
+		"research": [
+			"IsaacSim-Based Data Augmentation"
+		],
+		"order": 8
+	},
+	{
+		"id": "driving-01",
+		"name": "이충헌",
+		"role": "undergrad",
+		"team": "driving",
+		"research": [
+			"Scene Graph",
+			"Vision-Language Navigation"
+		],
+		"order": 1
+	},
+	{
+		"id": "driving-02",
+		"name": "유강민",
+		"role": "undergrad",
+		"team": "driving",
+		"research": [
+			"4D Radar Camera Based Vehicle Pose Estimation"
+		],
+		"order": 2
+	},
+	{
+		"id": "driving-03",
+		"name": "성민준",
+		"role": "undergrad",
+		"team": "driving",
+		"research": [
+			"Roadmarking Semantic Segmentation",
+			"DexHand"
+		],
+		"order": 3
+	},
+	{
+		"id": "driving-04",
+		"name": "왕석빈",
+		"role": "undergrad",
+		"team": "driving",
+		"research": [
+			"Vision-Language Navigation"
+		],
+		"order": 4
+	},
+	{
+		"id": "driving-05",
+		"name": "임민창",
+		"role": "undergrad",
+		"team": "driving",
+		"research": [
+			"Semantic Segmentation",
+			"Scene Graph"
+		],
+		"order": 5
+	},
+	{
+		"id": "driving-06",
+		"name": "윤정우",
+		"role": "undergrad",
+		"team": "driving",
+		"research": [
+			"3D Object Detection",
+			"Vision-Language Navigation"
+		],
+		"order": 6
+	},
+	{
+		"id": "driving-07",
+		"name": "김형래",
+		"role": "undergrad",
+		"team": "driving",
+		"research": [
+			"Dexterous Hand VLA"
+		],
+		"order": 7
+	},
+	{
+		"id": "driving-08",
+		"name": "박철주",
+		"role": "undergrad",
+		"team": "driving",
+		"research": [
+			"4D Radar Camera Based Vehicle Pose Estimation"
+		],
+		"order": 8
+	}
+]

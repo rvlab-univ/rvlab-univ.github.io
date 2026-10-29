@@ -1,0 +1,282 @@
+---
+import { getCollection } from 'astro:content';
+import { PI } from '../consts';
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const TEAMS = [
+	{ key: 'robot', label: 'Robot Team', desc: '휴머노이드 · Imitation Learning · Sim2Real' },
+	{ key: 'driving', label: 'Autonomous Navigation/Driving Team', desc: 'VLN · Segmentation · 4D Radar' },
+] as const;
+
+const students = (await getCollection('members'))
+	.filter((m) => m.data.role !== 'professor')
+	.sort((a, b) => a.data.order - b.data.order);
+const teams = TEAMS.map((team) => ({
+	...team,
+	people: students.filter((m) => m.data.team === team.key),
+}));
+---
+
+<BaseLayout title="구성원" description="RV LAB 지도교수와 구성원 소개">
+	<header class="page-header">
+		<p class="eyebrow">People</p>
+		<h1>구성원</h1>
+	</header>
+
+	<section class="pi card" id="pi">
+		<div class="pi-head">
+			<div class="avatar big" aria-hidden="true">{PI.name.slice(0, 1)}</div>
+			<div>
+				<p class="role">Principal Investigator</p>
+				<h2>{PI.name} <small>{PI.nameEn}</small></h2>
+				<p class="muted">{PI.title}</p>
+				<p class="contact">
+					<a href={`mailto:${PI.email}`}>{PI.email}</a> ·
+					<a href={PI.blog} target="_blank" rel="noopener">Naver Blog</a>
+				</p>
+				<ul class="interests">
+					{PI.interests.map((i) => <li class="badge">{i}</li>)}
+				</ul>
+			</div>
+		</div>
+
+		<div class="cv">
+			<div>
+				<h3>Work Experience</h3>
+				<ol class="timeline">
+					{
+						PI.experience.map((e) => (
+							<li>
+								<span class="period">{e.period}</span>
+								<strong>{e.role}</strong>
+								<span>{e.org}</span>
+								<span class="muted">{e.detail}</span>
+							</li>
+						))
+					}
+				</ol>
+			</div>
+			<div>
+				<h3>Education</h3>
+				<ol class="timeline">
+					{
+						PI.education.map((e) => (
+							<li>
+								<span class="period">{e.period}</span>
+								<strong>{e.degree}</strong>
+								<span class="muted">{e.detail}</span>
+							</li>
+						))
+					}
+				</ol>
+			</div>
+		</div>
+
+		<details>
+			<summary>초청 강연 · 특허 · 리뷰어</summary>
+			<div class="cv">
+				<div>
+					<h3>Invited Talks</h3>
+					<ul class="plain">
+						{
+							PI.talks.map((t) => (
+								<li>
+									<span class="period">{t.date}</span> {t.host}, “{t.title}”
+								</li>
+							))
+						}
+					</ul>
+				</div>
+				<div>
+					<h3>Patents</h3>
+					<ul class="plain">
+						{
+							PI.patents.map((p) => (
+								<li>
+									<span class="period">{p.date}</span> <code>{p.id}</code> {p.title}
+								</li>
+							))
+						}
+					</ul>
+					<h3>Academic Reviewer</h3>
+					<ul class="plain">
+						{PI.reviewer.map((r) => <li>{r}</li>)}
+					</ul>
+				</div>
+			</div>
+		</details>
+	</section>
+
+	<h2 class="group-title">Undergraduate Students <small class="muted">{students.length}명</small></h2>
+	{
+		teams.map((team) => (
+			<section class="team">
+				<h3>
+					{team.label} <small class="muted">{team.desc}</small>
+				</h3>
+				<ul class="people">
+					{team.people.map(({ data }) => (
+						<li class="card person">
+							<div class="avatar" aria-hidden="true">
+								{data.name.slice(0, 1)}
+							</div>
+							<div>
+								<p class="name">{data.name}</p>
+								<p class="research">{data.research.join(' · ')}</p>
+							</div>
+						</li>
+					))}
+				</ul>
+			</section>
+		))
+	}
+</BaseLayout>
+
+<style>
+	.pi-head {
+		display: flex;
+		gap: 1.5rem;
+		align-items: flex-start;
+	}
+	.pi h2 small {
+		font-size: 1rem;
+		font-weight: 400;
+		color: var(--text-muted);
+	}
+	.role {
+		margin: 0;
+		color: var(--accent);
+		font-size: 0.8rem;
+		font-weight: 700;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+	}
+	.pi-head p {
+		margin: 0;
+	}
+	.contact {
+		margin-top: 0.4rem !important;
+		font-size: 0.92rem;
+	}
+	.interests {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.4rem;
+		margin: 0.75rem 0 0;
+		padding: 0;
+		list-style: none;
+	}
+	.cv {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 2rem;
+		margin-top: 2rem;
+	}
+	.cv h3 {
+		font-size: 1rem;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		color: var(--text-muted);
+	}
+	.timeline {
+		margin: 0;
+		padding: 0 0 0 1rem;
+		border-left: 2px solid var(--border);
+		list-style: none;
+	}
+	.timeline li {
+		display: flex;
+		flex-direction: column;
+		margin-bottom: 1rem;
+		font-size: 0.92rem;
+		line-height: 1.5;
+	}
+	.period {
+		color: var(--accent);
+		font-size: 0.8rem;
+		font-weight: 700;
+	}
+	details {
+		margin-top: 1rem;
+		padding-top: 1rem;
+		border-top: 1px solid var(--border);
+	}
+	summary {
+		cursor: pointer;
+		font-weight: 700;
+	}
+	.plain {
+		margin: 0 0 1.5rem;
+		padding: 0;
+		list-style: none;
+		font-size: 0.9rem;
+	}
+	.plain li + li {
+		margin-top: 0.5rem;
+	}
+	.avatar {
+		flex: none;
+		display: grid;
+		place-items: center;
+		width: 52px;
+		height: 52px;
+		border-radius: 50%;
+		background: var(--accent-soft);
+		color: var(--accent);
+		font-size: 1.2rem;
+		font-weight: 700;
+	}
+	.avatar.big {
+		width: 96px;
+		height: 96px;
+		font-size: 2.2rem;
+	}
+	.group-title {
+		margin-top: 3.5rem;
+	}
+	.group-title small {
+		font-size: 1rem;
+		font-weight: 400;
+	}
+	.team {
+		margin-top: 1.5rem;
+	}
+	.team h3 small {
+		font-size: 0.85rem;
+		font-weight: 400;
+	}
+	.people {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+		gap: 0.9rem;
+		margin: 0.75rem 0 0;
+		padding: 0;
+		list-style: none;
+	}
+	.person {
+		display: flex;
+		gap: 0.9rem;
+		align-items: center;
+		padding: 1rem;
+	}
+	.person p {
+		margin: 0;
+	}
+	.name {
+		font-weight: 700;
+	}
+	.research {
+		color: var(--text-muted);
+		font-size: 0.85rem;
+		line-height: 1.45;
+	}
+	@media (max-width: 720px) {
+		.cv {
+			grid-template-columns: 1fr;
+			gap: 0;
+		}
+		.pi-head {
+			flex-direction: column;
+		}
+	}
+</style>

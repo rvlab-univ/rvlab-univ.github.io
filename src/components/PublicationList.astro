@@ -1,0 +1,100 @@
+---
+import type { Page } from 'astro';
+import type { CollectionEntry } from 'astro:content';
+import { PUBLICATION_CATEGORIES } from '../consts';
+import Pagination from './Pagination.astro';
+import PublicationItem from './PublicationItem.astro';
+
+interface Props {
+	page: Page<CollectionEntry<'publications'>>;
+	baseUrl: string;
+	// 현재 선택된 분류 (없으면 전체)
+	category?: string;
+	counts: Record<string, number>;
+}
+
+const { page, baseUrl, category, counts } = Astro.props;
+const total = Object.values(counts).reduce((a, b) => a + b, 0);
+const tabs = [
+	{ key: undefined, label: '전체', href: '/publications', count: total },
+	...PUBLICATION_CATEGORIES.map((c) => ({
+		key: c.key,
+		label: c.label,
+		href: `/publications/${c.key}`,
+		count: counts[c.key] ?? 0,
+	})),
+];
+
+// 현재 페이지 안의 논문을 연도별로 묶는다
+const byYear = Map.groupBy(page.data, (p) => p.data.year);
+---
+
+<nav class="tabs" aria-label="논문 분류">
+	{
+		tabs.map((tab) => (
+			<a href={tab.href} class:list={{ active: tab.key === category }}>
+				{tab.label} <span>{tab.count}</span>
+			</a>
+		))
+	}
+</nav>
+
+{
+	[...byYear].map(([year, pubs]) => (
+		<section>
+			<h2 class="year">{year}</h2>
+			<ul>
+				{pubs.map((pub) => (
+					<PublicationItem pub={pub} />
+				))}
+			</ul>
+		</section>
+	))
+}
+
+<Pagination page={page} baseUrl={baseUrl} />
+
+<style>
+	.tabs {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+		margin-bottom: 2rem;
+	}
+	.tabs a {
+		padding: 0.4rem 0.9rem;
+		border: 1px solid var(--border);
+		border-radius: 999px;
+		color: var(--text-muted);
+		font-size: 0.9rem;
+		font-weight: 500;
+		text-decoration: none;
+	}
+	.tabs a:hover {
+		border-color: var(--accent);
+		color: var(--accent);
+	}
+	.tabs a.active {
+		border-color: var(--accent);
+		background: var(--accent);
+		color: #fff;
+	}
+	.tabs span {
+		opacity: 0.7;
+		font-size: 0.8rem;
+	}
+	section + section {
+		margin-top: 2rem;
+	}
+	.year {
+		margin: 0;
+		padding-bottom: 0.5rem;
+		border-bottom: 2px solid var(--text);
+		font-size: 1.3rem;
+	}
+	ul {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+</style>

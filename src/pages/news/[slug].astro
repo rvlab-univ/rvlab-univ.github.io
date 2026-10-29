@@ -1,0 +1,132 @@
+---
+import { Image } from 'astro:assets';
+import { type CollectionEntry, getCollection, render } from 'astro:content';
+import FormattedDate from '../../components/FormattedDate.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+export async function getStaticPaths() {
+	const posts = (await getCollection('news')).sort(
+		(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+	);
+	return posts.map((post, i) => ({
+		params: { slug: post.id },
+		props: { post, newer: posts[i - 1], older: posts[i + 1] },
+	}));
+}
+
+interface Props {
+	post: CollectionEntry<'news'>;
+	newer?: CollectionEntry<'news'>;
+	older?: CollectionEntry<'news'>;
+}
+
+const { post, newer, older } = Astro.props;
+const { title, description, pubDate, category, heroImage } = post.data;
+const { Content } = await render(post);
+---
+
+<BaseLayout title={title} description={description} image={heroImage}>
+	<article>
+		<a class="back" href="/news">← 소식 목록</a>
+		<header>
+			<div class="meta">
+				<span class="badge">{category}</span>
+				<span class="muted"><FormattedDate date={pubDate} /></span>
+			</div>
+			<h1>{title}</h1>
+			<p class="muted lead">{description}</p>
+		</header>
+		{heroImage && <Image class="hero" width={1020} height={510} src={heroImage} alt="" />}
+		<div class="prose">
+			<Content />
+		</div>
+	</article>
+
+	<nav class="adjacent" aria-label="이전/다음 글">
+		{
+			older ? (
+				<a href={`/news/${older.id}/`}>
+					<small>← 이전 글</small>
+					<span>{older.data.title}</span>
+				</a>
+			) : (
+				<span />
+			)
+		}
+		{
+			newer && (
+				<a class="right" href={`/news/${newer.id}/`}>
+					<small>다음 글 →</small>
+					<span>{newer.data.title}</span>
+				</a>
+			)
+		}
+	</nav>
+</BaseLayout>
+
+<style>
+	article {
+		max-width: 720px;
+		margin: 0 auto;
+	}
+	.back {
+		display: inline-block;
+		margin-bottom: 1.5rem;
+		font-size: 0.9rem;
+		text-decoration: none;
+	}
+	.meta {
+		display: flex;
+		gap: 0.6rem;
+		align-items: center;
+		margin-bottom: 0.75rem;
+		font-size: 0.9rem;
+	}
+	.lead {
+		font-size: 1.05rem;
+	}
+	.hero {
+		display: block;
+		width: 100%;
+		margin: 1.5rem 0;
+	}
+	.prose {
+		margin-top: 2rem;
+		padding-top: 2rem;
+		border-top: 1px solid var(--border);
+	}
+	.adjacent {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 1rem;
+		max-width: 720px;
+		margin: 3rem auto 0;
+	}
+	.adjacent a {
+		display: flex;
+		flex-direction: column;
+		padding: 1rem 1.25rem;
+		border: 1px solid var(--border);
+		border-radius: var(--radius);
+		color: var(--text);
+		text-decoration: none;
+	}
+	.adjacent a:hover {
+		border-color: var(--accent);
+	}
+	.adjacent small {
+		color: var(--text-muted);
+	}
+	.adjacent .right {
+		grid-column: 2;
+		text-align: right;
+	}
+	@media (max-width: 560px) {
+		.adjacent {
+			grid-template-columns: 1fr;
+		}
+		.adjacent .right {
+			grid-column: 1;
+		}
+	}
+</style>

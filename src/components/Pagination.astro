@@ -1,0 +1,150 @@
+---
+import type { Page } from 'astro';
+
+interface Props {
+	page: Page<unknown>;
+	// 1페이지의 URL (예: '/news'). 2페이지부터는 `${baseUrl}/2` 형태.
+	baseUrl: string;
+	// 현재 페이지 양옆으로 보여줄 번호 개수
+	siblings?: number;
+}
+
+const { page, baseUrl, siblings = 1 } = Astro.props;
+const { currentPage, lastPage } = page;
+
+const urlFor = (n: number) => (n === 1 ? baseUrl : `${baseUrl}/${n}`);
+
+// 1 … 4 5 [6] 7 8 … 12 형태의 번호 목록을 만든다.
+type Item = { type: 'page'; n: number } | { type: 'gap'; key: string };
+const items: Item[] = [];
+const from = Math.max(2, currentPage - siblings);
+const to = Math.min(lastPage - 1, currentPage + siblings);
+
+items.push({ type: 'page', n: 1 });
+if (from > 2) items.push({ type: 'gap', key: 'start' });
+for (let n = from; n <= to; n++) items.push({ type: 'page', n });
+if (to < lastPage - 1) items.push({ type: 'gap', key: 'end' });
+if (lastPage > 1) items.push({ type: 'page', n: lastPage });
+---
+
+{
+	lastPage > 1 && (
+		<nav class="pagination" aria-label="페이지 이동">
+			<p class="summary">
+				전체 {page.total}개 중 {page.start + 1}–{page.end + 1}
+			</p>
+			<ul>
+				<li>
+					{page.url.prev ? (
+						<a class="step" href={page.url.prev} rel="prev">
+							<span aria-hidden="true">←</span> 이전
+						</a>
+					) : (
+						<span class="step disabled" aria-disabled="true">
+							<span aria-hidden="true">←</span> 이전
+						</span>
+					)}
+				</li>
+				{items.map((item) =>
+					item.type === 'gap' ? (
+						<li class="gap" aria-hidden="true">
+							…
+						</li>
+					) : (
+						<li>
+							{item.n === currentPage ? (
+								<span class="num current" aria-current="page">
+									{item.n}
+								</span>
+							) : (
+								<a class="num" href={urlFor(item.n)} aria-label={`${item.n}페이지`}>
+									{item.n}
+								</a>
+							)}
+						</li>
+					),
+				)}
+				<li>
+					{page.url.next ? (
+						<a class="step" href={page.url.next} rel="next">
+							다음 <span aria-hidden="true">→</span>
+						</a>
+					) : (
+						<span class="step disabled" aria-disabled="true">
+							다음 <span aria-hidden="true">→</span>
+						</span>
+					)}
+				</li>
+			</ul>
+		</nav>
+	)
+}
+
+<style>
+	.pagination {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.75rem;
+		margin-top: 3rem;
+	}
+	.summary {
+		margin: 0;
+		color: var(--text-muted);
+		font-size: 0.85rem;
+	}
+	ul {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		align-items: center;
+		gap: 0.35rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	.num,
+	.step {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.3rem;
+		min-width: 2.5rem;
+		height: 2.5rem;
+		padding: 0 0.75rem;
+		border: 1px solid var(--border);
+		border-radius: 10px;
+		background: var(--card);
+		color: var(--text);
+		font-size: 0.95rem;
+		font-weight: 500;
+		text-decoration: none;
+		transition:
+			border-color 0.15s,
+			color 0.15s,
+			background 0.15s;
+	}
+	a.num:hover,
+	a.step:hover {
+		border-color: var(--accent);
+		color: var(--accent);
+	}
+	.current {
+		border-color: var(--accent);
+		background: var(--accent);
+		color: #fff;
+	}
+	.disabled {
+		opacity: 0.4;
+		cursor: not-allowed;
+	}
+	.gap {
+		padding: 0 0.25rem;
+		color: var(--text-muted);
+	}
+	@media (max-width: 480px) {
+		.step {
+			padding: 0 0.6rem;
+		}
+	}
+</style>

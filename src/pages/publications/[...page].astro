@@ -1,0 +1,29 @@
+---
+import type { GetStaticPaths } from 'astro';
+import PublicationList from '../../components/PublicationList.astro';
+import { PUBLICATIONS_PAGE_SIZE } from '../../consts';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getSortedPublications } from '../../lib/publications';
+
+// /publications, /publications/2 ... 을 생성
+export const getStaticPaths = (async ({ paginate }) => {
+	const pubs = await getSortedPublications();
+	const counts = Object.fromEntries(
+		Object.entries(Object.groupBy(pubs, (p) => p.data.category)).map(([k, v]) => [k, v!.length]),
+	);
+	return paginate(pubs, { pageSize: PUBLICATIONS_PAGE_SIZE, props: { counts } });
+}) satisfies GetStaticPaths;
+
+const { page, counts } = Astro.props;
+---
+
+<BaseLayout title="논문" description="RV LAB의 국제·국내 저널 및 학회 논문 목록">
+	<header class="page-header">
+		<p class="eyebrow">Publications</p>
+		<h1>논문</h1>
+		<p>
+			<strong>굵은 이름</strong>은 RV LAB 구성원입니다. (*: equal contribution, †: corresponding author)
+		</p>
+	</header>
+	<PublicationList page={page} baseUrl="/publications" counts={counts} />
+</BaseLayout>

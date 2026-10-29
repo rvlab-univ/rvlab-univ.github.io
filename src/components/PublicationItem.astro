@@ -1,0 +1,127 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { LAB_AUTHORS, PUBLICATION_CATEGORIES } from '../consts';
+
+interface Props {
+	pub: CollectionEntry<'publications'>;
+}
+
+const { pub } = Astro.props;
+const { title, authors, venue, year, category, underReview, award, links } = pub.data;
+
+const label = PUBLICATION_CATEGORIES.find((c) => c.key === category)!.label;
+
+// 연구실 구성원 이름을 굵게 표시하기 위해 저자 문자열을 쪼갠다
+const escaped = LAB_AUTHORS.map((n) => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+const parts = authors.split(new RegExp(`(${escaped.join('|')})`, 'g'));
+---
+
+<li class="pub">
+	<span class:list={['type', category]}>{label}</span>
+	<div>
+		<p class="title">
+			{underReview && <span class="review">Under Review</span>}
+			{title}
+		</p>
+		<p class="authors">
+			{parts.map((part) => (LAB_AUTHORS.includes(part) ? <strong>{part}</strong> : part))}
+		</p>
+		<p class="venue">
+			<em>{venue}</em>, {year}
+			{award && <span class="award">🏆 {award}</span>}
+			{
+				links.map((link) => (
+					<a class="link" href={link.url} target="_blank" rel="noopener">
+						{link.label}
+					</a>
+				))
+			}
+		</p>
+	</div>
+</li>
+
+<style>
+	.pub {
+		display: grid;
+		grid-template-columns: 5.5rem 1fr;
+		gap: 1rem;
+		padding: 1.1rem 0;
+		border-bottom: 1px solid var(--border);
+	}
+	.pub p {
+		margin: 0;
+	}
+	.type {
+		align-self: start;
+		padding: 0.15rem 0;
+		border-radius: 6px;
+		background: var(--accent-soft);
+		color: var(--accent);
+		font-size: 0.78rem;
+		font-weight: 700;
+		text-align: center;
+	}
+	.type.intl-journal {
+		background: #e7f6ec;
+		color: #1d7a3e;
+	}
+	.type.domestic-journal,
+	.type.domestic-conference {
+		background: var(--bg-alt);
+		color: var(--text-muted);
+	}
+	@media (prefers-color-scheme: dark) {
+		.type.intl-journal {
+			background: #143322;
+			color: #7fd6a0;
+		}
+	}
+	.title {
+		font-weight: 700;
+		line-height: 1.45;
+	}
+	.review {
+		display: inline-block;
+		margin-right: 0.4rem;
+		padding: 0 0.4rem;
+		border: 1px solid #d69e2e;
+		border-radius: 4px;
+		color: #b7791f;
+		font-size: 0.72rem;
+		font-weight: 700;
+		vertical-align: 0.15em;
+	}
+	.authors,
+	.venue {
+		color: var(--text-muted);
+		font-size: 0.92rem;
+	}
+	.authors strong {
+		color: var(--text);
+	}
+	.award {
+		margin-left: 0.5rem;
+		color: #b7791f;
+		font-weight: 700;
+	}
+	.link {
+		margin-left: 0.5rem;
+		font-size: 0.85rem;
+	}
+	.link::before {
+		content: '[';
+	}
+	.link::after {
+		content: ']';
+	}
+	@media (max-width: 560px) {
+		.pub {
+			grid-template-columns: 1fr;
+			gap: 0.4rem;
+		}
+		.type {
+			justify-self: start;
+			padding: 0.1rem 0.5rem;
+		}
+	}
+</style>

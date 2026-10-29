@@ -1,0 +1,97 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const projects = (await getCollection('projects')).sort((a, b) => b.data.no - a.data.no);
+---
+
+<BaseLayout title="프로젝트" description="RV LAB 지도교수가 참여한 연구 과제">
+	<header class="page-header">
+		<p class="eyebrow">Projects</p>
+		<h1>연구 과제</h1>
+		<p>지도교수가 참여·수행한 산학·국책 연구 과제입니다.</p>
+	</header>
+
+	<ol class="projects">
+		{
+			projects.map(({ data }) => (
+				<li class="card project">
+					<div class="no" aria-hidden="true">
+						{String(data.no).padStart(2, '0')}
+					</div>
+					<div>
+						<h2>
+							{data.title}
+							{data.lead && <span class="badge">Project Lead</span>}
+						</h2>
+						<p class="meta">
+							<span>{data.funder}</span>
+							<span>{data.period}</span>
+						</p>
+						<p>{data.abstract}</p>
+						<ul class="acts">
+							{data.activities.map((a) => (
+								<li>{a}</li>
+							))}
+						</ul>
+					</div>
+				</li>
+			))
+		}
+	</ol>
+</BaseLayout>
+
+<style>
+	.projects {
+		display: grid;
+		gap: 1.25rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	.project {
+		display: flex;
+		gap: 1.5rem;
+	}
+	.no {
+		flex: none;
+		color: var(--accent);
+		font-size: 1.8rem;
+		font-weight: 700;
+		line-height: 1.2;
+		opacity: 0.5;
+	}
+	h2 {
+		font-size: 1.15rem;
+	}
+	h2 .badge {
+		margin-left: 0.5rem;
+		vertical-align: 0.15em;
+	}
+	.meta {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.25rem 1rem;
+		color: var(--text-muted);
+		font-size: 0.88rem;
+	}
+	.meta span + span::before {
+		content: '·';
+		margin-right: 1rem;
+	}
+	.project p {
+		margin-bottom: 0.6rem;
+	}
+	.acts {
+		margin: 0;
+		padding-left: 1.1rem;
+		color: var(--text-muted);
+		font-size: 0.92rem;
+	}
+	@media (max-width: 560px) {
+		.project {
+			flex-direction: column;
+			gap: 0.25rem;
+		}
+	}
+</style>
