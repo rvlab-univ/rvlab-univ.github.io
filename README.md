@@ -40,13 +40,6 @@ docker run --rm -v "$PWD":/w -w /w node:22-bookworm-slim npx astro build   # →
 
 ## 배포 (GitHub Pages)
 
-GitHub Pages는 `deploy` 브랜치의 루트를 그대로 서빙합니다. `main`에서 빌드한 `dist/`를 `deploy` 브랜치에 커밋합니다.
-(`public/.nojekyll`이 있어야 `_astro/` 폴더가 Jekyll에 무시되지 않습니다.)
-
-```sh
-docker run --rm -v "$PWD":/w -w /w node:22-bookworm-slim npx astro build
-git worktree add ../rvlab-deploy deploy
-rsync -a --delete --exclude .git dist/ ../rvlab-deploy/
-git -C ../rvlab-deploy add -A && git -C ../rvlab-deploy commit -m "Deploy $(git rev-parse --short HEAD)" && git -C ../rvlab-deploy push origin deploy
-git worktree remove ../rvlab-deploy
-```
+`main`에 push하면 GitHub Actions(`.github/workflows/deploy.yml`)가 빌드해서 `deploy` 브랜치에 올리고,
+GitHub Pages가 `deploy` 브랜치를 서빙합니다. 진행 상황은 GitHub 저장소의 **Actions** 탭에서 볼 수 있습니다.
+문서 형식이 틀리면 빌드가 실패하고 이전 사이트가 그대로 유지됩니다.

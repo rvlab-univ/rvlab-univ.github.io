@@ -1,0 +1,49 @@
+# main 에 push 되면 사이트를 빌드해 deploy 브랜치에 올린다.
+# GitHub Pages 는 deploy 브랜치의 루트를 그대로 서빙한다 (Settings → Pages → Deploy from a branch).
+name: Deploy site
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# 연속으로 push 해도 배포가 순서대로 하나씩 실행되게 한다
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # 문서 형식이 틀리면 여기서 파일:줄 과 함께 실패한다
+      - run: npx astro check
+      - run: npx astro build
+
+      - name: Push dist to deploy branch
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch --depth=1 origin deploy
+          git worktree add -B deploy ../site origin/deploy
+          rsync -a --delete --exclude .git dist/ ../site/
+          cd ../site
+          git add -A
+          if git diff --cached --quiet; then
+            echo "변경 없음 — 배포 생략"
+            exit 0
+          fi
+          git commit -m "Deploy site from main@${GITHUB_SHA::7}"
+          git push origin deploy

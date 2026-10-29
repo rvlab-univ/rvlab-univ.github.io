@@ -165,23 +165,15 @@ docker rm -f lab-site-dev     # 끄기
 
 ## 배포
 
-GitHub Pages는 **`deploy` 브랜치의 루트**를 그대로 서빙한다 (Settings → Pages → Deploy from a branch).
-소스는 `main`, 빌드 결과물(`dist/`)은 `deploy`에 커밋한다. force push는 하지 않는다.
+**`main`에 push하면 GitHub Actions(`.github/workflows/deploy.yml`)가 자동으로 배포한다.**
+타입 체크와 빌드를 거쳐 `dist/`를 `deploy` 브랜치에 커밋하고, GitHub Pages는 `deploy` 브랜치의 루트를 서빙한다
+(Settings → Pages → Deploy from a branch). `deploy` 브랜치는 직접 고치지 않는다.
 
-```sh
-# 1. main 커밋 후
-docker run --rm -v "$PWD":/w -w /w node:22-bookworm-slim npx astro build
-git fetch origin
-git worktree add ../rvlab-deploy deploy
-rsync -a --delete --exclude .git dist/ ../rvlab-deploy/
-git -C ../rvlab-deploy add -A
-git -C ../rvlab-deploy commit -m "Deploy site from main@$(git rev-parse --short HEAD)"
-git push origin main deploy
-git worktree remove ../rvlab-deploy
-```
-
+- 문서 형식이 틀리면 Actions의 `astro check`/`astro build` 단계가 `파일:줄 — 이유`와 함께 실패하고 배포되지 않는다.
+  `gh run list --workflow deploy.yml`, `gh run view <id> --log-failed`로 확인한다.
+- 수동 재배포: GitHub Actions 탭에서 "Deploy site" → Run workflow, 또는 `gh workflow run deploy.yml`.
 - `public/.nojekyll`을 지우지 않는다. 없으면 GitHub Pages가 `_astro/` 폴더(CSS, 폰트)를 무시해 화면이 깨진다.
-- push 후 `gh api repos/rvlab-univ/rvlab-univ.github.io/pages/builds/latest`로 빌드 상태(`built`)를 확인하고,
+- 배포 후 `gh api repos/rvlab-univ/rvlab-univ.github.io/pages/builds/latest`로 Pages 빌드 상태(`built`)를 확인하고,
   https://rvlab-univ.github.io 의 주요 페이지가 200으로 열리는지 확인한다.
 
 ## 콘텐츠 출처
