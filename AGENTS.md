@@ -13,8 +13,11 @@ https://rvlab-univ.github.io 에 GitHub Pages로 배포됩니다. 이 문서는 
    각 문서 맨 위 `<!-- -->` 주석에 그 문서의 작성 규칙이 있으니 먼저 읽는다.
 3. **사실을 지어내지 않는다.** 저자, 학회명, 연도, 수상, 링크는 사용자가 준 정보나 확인한 출처에서만 가져온다.
    모르는 값은 비워 두거나 사용자에게 묻는다. 논문의 `[paper]` 링크처럼 주소가 없는 것은 넣지 않는다.
-4. **바꾼 뒤에는 반드시 빌드로 확인한다** (아래 "확인"). 에러가 나면 메시지의 파일과 줄을 고친다.
-5. **커밋, push, 배포는 사용자가 요청했을 때만 한다.**
+4. **바꾼 뒤에는 반드시 빌드로 확인한다** (아래 "실행과 확인"). 에러가 나면 메시지의 파일과 줄을 고친다.
+5. **`main`에 push하면 곧바로 공개 사이트에 배포된다** (아래 "배포"). 그래서 커밋과 push는 사용자가 요청했을 때만 하고,
+   push 전에 반드시 빌드 확인을 통과시킨다.
+6. **다른 사람도 GitHub 웹에서 직접 커밋한다.** 작업 시작 전에 `git pull --rebase`로 최신 상태를 받고,
+   push가 거부되면(non-fast-forward) 원격 커밋을 확인한 뒤 rebase해서 다시 push한다. **force push는 절대 하지 않는다.**
 
 ## 문서별 작성 규칙
 
@@ -29,7 +32,7 @@ https://rvlab-univ.github.io 에 GitHub Pages로 배포됩니다. 이 문서는 
 
 - **논문 제목**
   저자1, 저자2* and Minseong Choi†
-  _학회 또는 저널 이름_, 2026 · Under Review · 🏆 Best Paper Award · [video](https://youtu.be/xxxx)
+  _학회 또는 저널 이름_, 2026 · Under Review · 🏆 Best Paper Award · [paper](https://…) · [video](https://youtu.be/xxxx)
 ```
 
 - 분류(`##`)는 `국제 저널`, `국제 학회`, `국내 저널`, `국내 학회` 중 하나다 (`src/consts.ts`의 `PUBLICATION_CATEGORIES`).
@@ -70,7 +73,13 @@ https://rvlab-univ.github.io 에 GitHub Pages로 배포됩니다. 이 문서는 
 ## 10. 과제 이름
 지원 기관 · 06.2026 – Present · Project Lead
 
+![대표 사진 설명](attachments/projects/project-10-cover.jpg)
+
 개요 문단과 목록을 자유롭게.
+
+### Related Papers
+
+- 저자. "제목", 학회, 연도. [paper](https://…)
 ```
 
 `Project Lead`는 해당될 때만 쓴다. 번호가 큰 순서(최신)로 표시된다.
@@ -99,6 +108,8 @@ category: 세미나
 
 ### `src/content/home.md` — 첫 화면
 
+첫 화면은 소개 문구 → 연구 분야 → 연구 하이라이트(영상) → NEWS → 최근 논문 → 협력 기관 → 모집 안내 순이다.
+연구 분야와 하이라이트는 `research.md`, NEWS와 최근 논문은 각 문서에서 자동으로 가져온다.
 `# 제목` 아래 문단이 소개 문구다. `## 협력 기관` 절의 이미지들은 로고 목록이 되고
 (`![기관 이름](attachments/collaborators/파일)` 한 줄에 하나), 그 밖의 `##` 절은 모집 안내 상자가 된다
 (`>` 줄은 작은 공지). 절을 지우면 해당 영역이 사라진다.
@@ -139,6 +150,13 @@ category: 세미나
 
 - `projects.md`의 과제 설명은 구글 사이트의 **영어 원문**을 그대로 옮긴 것이다(명백한 철자 오타만 수정). 번역하지 않는다.
 
+### 스크립트로 문서를 고칠 때 주의
+
+- 각 문서 맨 위 `<!-- -->` 주석 안에도 `## 제목` 같은 예시 문구가 들어 있다. 문자열 검색으로 제목 위치를 찾으면
+  주석 안의 예시를 잘못 집을 수 있다 (실제로 `research.md`의 연구 분야가 통째로 잘린 적이 있다).
+  위치를 찾을 때는 줄 맨 앞부터 일치하는지 확인하고, 고친 뒤 `grep '^## ' 파일`로 제목 구조가 그대로인지 확인한다.
+- 여러 단계로 파일을 지우거나 덮어쓰는 셸 명령은 `&&`로 이어서, 앞 단계가 실패하면 멈추게 한다.
+
 ### 그 밖의 설정
 
 - 사이트 이름, 이메일, YouTube 주소, 한 페이지당 항목 수: `src/consts.ts`
@@ -160,6 +178,8 @@ docker rm -f lab-site-dev     # 끄기
 ```
 
 - `src/content.config.ts`나 `src/lib/*`를 고친 뒤에는 미리보기 서버가 이전 데이터를 계속 보여줄 수 있다. 서버를 재시작한다.
+- **빌드할 때는 미리보기 서버를 멈춘다** (`docker stop lab-site-dev`). 둘이 같은 `.astro/` 캐시를 동시에 쓰면
+  빌드가 `The collection "…" does not exist or is empty` 경고와 함께 빈 페이지를 만들 수 있다.
 - 성공한 빌드는 `[build] 24 page(s) built`처럼 끝난다. 페이지 수는 논문·소식 수에 따라 달라진다.
 - 변경을 보고할 때는 무엇이 몇 건 바뀌었는지와 빌드 결과를 함께 알린다.
 
@@ -172,6 +192,9 @@ docker rm -f lab-site-dev     # 끄기
 - 문서 형식이 틀리면 Actions의 `astro check`/`astro build` 단계가 `파일:줄 — 이유`와 함께 실패하고 배포되지 않는다.
   `gh run list --workflow deploy.yml`, `gh run view <id> --log-failed`로 확인한다.
 - 수동 재배포: GitHub Actions 탭에서 "Deploy site" → Run workflow, 또는 `gh workflow run deploy.yml`.
+- 빌드 결과가 이전과 같으면(README나 AGENTS.md만 바꾼 경우 등) `deploy` 브랜치에 커밋하지 않고 "변경 없음"으로 끝난다.
+- 워크플로는 기본 토큰 권한이 읽기 전용인 레포에서 `permissions: contents: write`로 `deploy` 브랜치에 push한다.
+  Pages 설정(Deploy from a branch → `deploy` / root)은 바꾸지 않는다.
 - `public/.nojekyll`을 지우지 않는다. 없으면 GitHub Pages가 `_astro/` 폴더(CSS, 폰트)를 무시해 화면이 깨진다.
 - 배포 후 `gh api repos/rvlab-univ/rvlab-univ.github.io/pages/builds/latest`로 Pages 빌드 상태(`built`)를 확인하고,
   https://rvlab-univ.github.io 의 주요 페이지가 200으로 열리는지 확인한다.
@@ -181,7 +204,10 @@ docker rm -f lab-site-dev     # 끄기
 초기 내용은 기존 구글 사이트 https://sites.google.com/view/rv-lab 에서 옮겼다. 확인이 필요한 항목:
 
 - 같은 논문의 저자 표기가 "Sangjun Yu"(홈)와 "Sanghun Yoo"(논문 목록)로 다르다. `members.md`에는 Sangjun Yu로 적혀 있다.
-- 모집 안내의 "구글 설문지" 링크와 논문 `[paper]` 링크는 원본에서 주소를 찾지 못해 비어 있다.
+- 논문·과제의 `[paper]` 링크와 수상 증빙 링크는 원본의 Google Drive 링크를 옮겼다 (논문 25편).
+  UPRuNA(영상만 있음), 국내 저널 2편, ICROS 2026 학회 논문 3편은 원본에도 paper 링크가 없다.
+- YouTube 영상은 원본 사이트에 임베드된 것을 모두 옮겼다 (연구 하이라이트, Research Statement, 과제).
+- 모집 안내의 "구글 설문지" 링크는 원본에서 주소를 찾지 못해 비어 있다.
 - 사진·그림은 구글 사이트에서 내려받아 `attachments/`에 넣었다. 다만 다음 파일은 구글 사이트에서 403(비공개)이라
   받지 못했다: 강민수·이다민·이충헌 사진, 과제 4·5·6·7 등의 일부 본문 그림.
   김도연·강근영·김형래·박철주는 원본도 기본 아바타라 사진이 없다.
