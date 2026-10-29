@@ -2,20 +2,34 @@
 
 Astro 공식 `blog` 템플릿을 기반으로 만든 연구실 소개 사이트입니다.
 
-## 구조
+## 내용 수정 방법
 
-| 경로 | 내용 | 수정할 파일 |
+> 코딩 에이전트(Claude Code 등)로 작업할 때의 규칙은 [`AGENTS.md`](AGENTS.md)에 있습니다.
+
+**모든 내용은 `src/content/`의 Markdown 문서에서 수정합니다.** 구글 사이트에 글 쓰듯 제목(`##`)과 목록(`-`)으로 쓰면
+사이트가 그 구조를 읽어 페이지를 만듭니다. 각 문서 맨 위 `<!-- -->` 주석에 작성 규칙이 있습니다.
+
+| 문서 | 페이지 | 구조 |
 | --- | --- | --- |
-| `/` | 소개, 연구 분야, 최근 소식·논문, 모집 배너 | `src/consts.ts` |
-| `/research` | 연구 분야 | `src/consts.ts` (`RESEARCH_AREAS`) |
-| `/members` | 구성원 (역할별) | `src/data/members.json` |
-| `/publications`, `/publications/2` … | 논문 목록 (페이지네이션) | `src/data/publications.json` |
-| `/news`, `/news/2` … | 소식 목록 (페이지네이션) | `src/content/news/*.md` |
-| `/news/<slug>` | 소식 상세 (이전/다음 글) | |
+| `home.md` | `/` | `# 제목` 아래 소개 문구, `##` 절 = 모집 안내 상자 |
+| `research.md` | `/research` | `## 🤖 분야 (English)` = 연구 분야, `###` = 대표 연구, `## Research Statement:` = 하단 카드 |
+| `members.md` | `/members` | `## 지도교수 / 학부연구생 …`, `###` = 교수 또는 팀, 학생은 `- **이름** (영문) — 연구 주제` |
+| `publications.md` | `/publications` | `## 국제 저널 …` 아래 논문 하나 = 목록 항목 하나 (제목 / 저자 / 학회·연도 세 줄) |
+| `projects.md` | `/projects` | `## 번호. 과제명`, 다음 줄 `지원 기관 · 기간`, 그 아래 자유롭게 |
+| `news/*.md` | `/news` | 소식 하나 = 파일 하나. 맨 위에 `date`, `category`만 적고 `# 제목` + 본문 |
 
-- 페이지당 개수: `src/consts.ts`의 `NEWS_PAGE_SIZE`, `PUBLICATIONS_PAGE_SIZE`
-- 페이지네이터: `src/components/Pagination.astro` (Astro `paginate()`의 `page`를 받아 이전/번호/다음, 페이지가 많으면 `…` 생략)
-- 논문 저자 앞에 `*`를 붙이면 연구실 구성원으로 굵게 표시됩니다.
+예: 논문 추가는 `publications.md`의 해당 분류 아래에 세 줄을 붙여 넣으면 됩니다.
+
+```md
+- **논문 제목**
+  저자1, Minseong Choi†
+  _IEEE Robotics and Automation Letters_, 2026 · Under Review · [video](https://youtu.be/xxxx)
+```
+
+- 구성원 이름(괄호 안 영문 이름 포함)은 논문 저자 목록에서 자동으로 굵게 표시됩니다.
+- 형식이 어긋나면 `src/content/publications.md:19 — 세 번째 줄에 연도(예: 2026)가 없습니다`처럼 파일과 줄 번호를 알려줍니다.
+- 문서를 Markdown 구조로 읽는 규칙은 `src/lib/parsers.ts`에 있습니다.
+- 사이트 이름·메일·YouTube 주소와 페이지당 항목 수는 `src/consts.ts`에 있습니다.
 
 ## 실행 (Node 22 필요 → Docker)
 

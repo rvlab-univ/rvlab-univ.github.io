@@ -1,5 +1,5 @@
 ---
-// iframe 대신 썸네일 + 링크로 가볍게 YouTube 영상을 보여준다
+// 썸네일만 먼저 보여주고, 클릭하면 그 자리에서 재생한다 (YouTubePlayer.astro)
 interface Props {
 	id: string;
 	title: string;
@@ -8,7 +8,7 @@ interface Props {
 const { id, title } = Astro.props;
 ---
 
-<a class="video" href={`https://www.youtube.com/watch?v=${id}`} target="_blank" rel="noopener">
+<a class="video" data-yt={id} href={`https://www.youtube.com/watch?v=${id}`} target="_blank" rel="noopener">
 	<img src={`https://i.ytimg.com/vi/${id}/hqdefault.jpg`} alt={`${title} 영상`} loading="lazy" />
 	<span class="play" aria-hidden="true">▶</span>
 </a>

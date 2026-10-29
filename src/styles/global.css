@@ -170,3 +170,92 @@ hr {
 		padding: 2rem 1rem 3rem;
 	}
 }
+
+/* Markdown 본문 */
+.prose > :first-child {
+	margin-top: 0;
+}
+.prose > :last-child {
+	margin-bottom: 0;
+}
+.prose h2 {
+	margin-top: 2rem;
+}
+.prose h3 {
+	margin: 1.75rem 0 0.75rem;
+	color: var(--text-muted);
+	font-size: 0.95rem;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+}
+.prose ul,
+.prose ol {
+	margin: 0 0 1rem;
+	padding-left: 1.2rem;
+}
+.prose li + li {
+	margin-top: 0.4rem;
+}
+.prose .eyebrow {
+	margin: 0;
+	color: var(--accent);
+	font-size: 0.85rem;
+	font-weight: 700;
+	letter-spacing: 0.05em;
+	text-transform: uppercase;
+}
+
+/* Markdown 본문의 YouTube 영상 (YouTube 주소만 있는 줄) */
+.prose p:has(> .yt) {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+	gap: 0.75rem;
+	max-width: 720px;
+}
+.prose p:has(> .yt:only-child) {
+	grid-template-columns: minmax(0, 480px);
+}
+.yt {
+	position: relative;
+	display: block;
+	overflow: hidden;
+	border-radius: 10px;
+	background: #000;
+	color: #fff;
+	text-decoration: none;
+}
+.prose .yt img {
+	display: block;
+	width: 100%;
+	aspect-ratio: 16 / 9;
+	margin: 0;
+	object-fit: cover;
+	border-radius: 0;
+	transition: opacity 0.2s;
+}
+.yt:hover img {
+	opacity: 0.8;
+}
+.yt-play {
+	position: absolute;
+	top: calc(50% - 24px);
+	left: calc(50% - 24px);
+	display: grid;
+	place-items: center;
+	width: 48px;
+	height: 48px;
+	padding-left: 3px;
+	border-radius: 50%;
+	background: rgba(0, 0, 0, 0.6);
+	font-size: 1rem;
+}
+.yt:has(.yt-caption) .yt-play {
+	top: calc(50% - 40px);
+}
+.yt-caption {
+	display: block;
+	padding: 0.4rem 0.6rem;
+	background: var(--card);
+	color: var(--text);
+	font-size: 0.85rem;
+}

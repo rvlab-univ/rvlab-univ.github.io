@@ -1,41 +1,50 @@
 ---
+import { render } from 'astro:content';
+import PageHeader from '../components/PageHeader.astro';
 import VideoThumb from '../components/VideoThumb.astro';
-import { RESEARCH_PILLARS } from '../consts';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { getPage, getResearchAreas, getResearchStatements } from '../lib/content';
+
+// 내용 수정: src/content/research.md
+const page = await getPage('research');
+const areas = await Promise.all(
+	(await getResearchAreas()).map(async (area) => ({ area, Content: (await render(area)).Content })),
+);
+const statements = await Promise.all(
+	(await getResearchStatements()).map(async (s) => ({ s, Content: (await render(s)).Content })),
+);
 ---
 
-<BaseLayout title="연구" description="RV LAB 연구 분야: 휴머노이드 · Physical AI, 자율주행 인지">
-	<header class="page-header">
-		<p class="eyebrow">Research</p>
-		<h1>연구 분야</h1>
-		<p>RV LAB은 경기대학교 전자공학부에서 자율주행과 휴머노이드 관련 기술을 연구합니다.</p>
-	</header>
+<BaseLayout title={page.data.title} description={page.data.description}>
+	<PageHeader page={page} eyebrow="Research" />
 
 	{
-		RESEARCH_PILLARS.map((pillar) => (
-			<section class="pillar" id={pillar.id}>
+		areas.map(({ area, Content }) => (
+			<section class="pillar" id={area.id}>
 				<div class="intro">
 					<div>
 						<p class="en">
-							{pillar.icon} {pillar.titleEn}
+							{area.data.icon} {area.data.titleEn}
 						</p>
-						<h2>{pillar.title}</h2>
-						<p>{pillar.summary}</p>
+						<h2>{area.data.title}</h2>
+						<div class="prose">
+							<Content />
+						</div>
 						<ul class="keywords">
-							{pillar.keywords.map((k) => (
+							{area.data.keywords.map((k) => (
 								<li class="badge">{k}</li>
 							))}
 						</ul>
 					</div>
-					{pillar.video && <VideoThumb id={pillar.video} title={pillar.titleEn} />}
+					{area.data.video && <VideoThumb id={area.data.video} title={area.data.titleEn ?? area.data.title} />}
 				</div>
 
 				<ul class="topics">
-					{pillar.topics.map((topic) => (
+					{area.data.topics.map((topic) => (
 						<li class="card topic">
 							{topic.video && <VideoThumb id={topic.video} title={topic.title} />}
 							<h3>
-								{pillar.titleEn} – {topic.title}
+								{area.data.titleEn} – {topic.title}
 							</h3>
 							<p>{topic.summary}</p>
 							<p class="paper">
@@ -49,35 +58,15 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 		))
 	}
 
-	<section class="statement card">
-		<p class="en">Research Statement</p>
-		<h2>4D Radar-Camera 기반 Vector Map SLAM</h2>
-		<p>
-			벡터맵은 차선·노면표시 같은 도로 정보를 담은 HD map의 간소화된 표현으로, 전역 경로 계획과 차선 기반
-			위치추정에 필요합니다. 4D 이미징 레이더는 LiDAR보다 저렴하게 3D 깊이와 도플러 속도를 제공하고 악천후에도
-			강건해 카메라와 상호보완적입니다.
-		</p>
-		<ol>
-			<li>
-				<strong>DORM 기반 Visual-4D Radar Odometry</strong> — 4D 레이더 도플러 속도로 움직이는 특징점을 제거하는
-				Dynamic Object Removal Mask를 제안하고, 레이더 자차 속도 추정으로 단안 VO의 스케일 모호성을 해결
-			</li>
-			<li>
-				<strong>소실점 보정 지면 기반 IPM 벡터 매핑</strong> — 다중 경로 반사로 부정확한 레이더 지면 추정을
-				소실점 추적으로 보정해 실시간 3D 벡터맵 생성
-			</li>
-			<li>
-				<strong>이중 확인 루프 검출</strong> — 4D 레이더 Z projection image(coarse)와 벡터맵(fine)을 함께
-				사용한 루프 검출 및 포즈 그래프 최적화
-			</li>
-		</ol>
-		<p class="links">
-			<a href="https://www.youtube.com/watch?v=MEGpB7BKaMY" target="_blank" rel="noopener">SLAM 영상</a>
-			·
-			<a href="https://mscrad4r.github.io/home/" target="_blank" rel="noopener">MSC-RAD4R 데이터셋</a>
-			(4D Radar · 스테레오 · LiDAR · RTK-GPS, 약 51.6km, 주간·야간·눈·연기 환경)
-		</p>
-	</section>
+	{
+		statements.map(({ s, Content }) => (
+			<section class="statement card prose">
+				<p class="eyebrow">Research Statement</p>
+				<h2>{s.data.title}</h2>
+				<Content />
+			</section>
+		))
+	}
 </BaseLayout>
 
 <style>
@@ -90,6 +79,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 		gap: 2rem;
 		align-items: center;
 		margin-bottom: 2rem;
+	}
+	.intro .prose {
+		margin-bottom: 1rem;
 	}
 	.en {
 		margin: 0;
@@ -145,16 +137,11 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 	.statement {
 		margin-top: 4.5rem;
 	}
-	.statement ol {
-		padding-left: 1.2rem;
-	}
-	.statement li + li {
-		margin-top: 0.5rem;
-	}
-	.links {
-		margin: 0;
-		font-size: 0.9rem;
-		color: var(--text-muted);
+	.statement :global(img) {
+		display: block;
+		max-width: min(100%, 720px);
+		margin: 1rem auto;
+		border-radius: 10px;
 	}
 	@media (max-width: 760px) {
 		.intro {

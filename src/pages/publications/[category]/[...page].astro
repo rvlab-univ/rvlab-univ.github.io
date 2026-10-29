@@ -1,9 +1,10 @@
 ---
 import type { GetStaticPaths } from 'astro';
+import PageHeader from '../../../components/PageHeader.astro';
 import PublicationList from '../../../components/PublicationList.astro';
 import { PUBLICATION_CATEGORIES, PUBLICATIONS_PAGE_SIZE } from '../../../consts';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
-import { getSortedPublications } from '../../../lib/publications';
+import { getPage, getSortedPublications } from '../../../lib/content';
 
 // /publications/intl-journal, /publications/intl-journal/2 ... 을 분류별로 생성
 export const getStaticPaths = (async ({ paginate }) => {
@@ -24,16 +25,11 @@ export const getStaticPaths = (async ({ paginate }) => {
 }) satisfies GetStaticPaths;
 
 const { page, category, counts } = Astro.props;
+const info = await getPage('publications');
 ---
 
 <BaseLayout title={`${category.label} 논문`} description={`RV LAB ${category.label} 논문 목록`}>
-	<header class="page-header">
-		<p class="eyebrow">Publications · {category.en}</p>
-		<h1>{category.label}</h1>
-		<p>
-			<strong>굵은 이름</strong>은 RV LAB 구성원입니다. (*: equal contribution, †: corresponding author)
-		</p>
-	</header>
+	<PageHeader page={info} title={category.label} eyebrow={`Publications · ${category.en}`} />
 	<PublicationList
 		page={page}
 		baseUrl={`/publications/${category.key}`}

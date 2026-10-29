@@ -1,11 +1,23 @@
 ---
-import { getCollection } from 'astro:content';
+import { Image } from 'astro:assets';
+import { getCollection, render } from 'astro:content';
 import NewsCard from '../components/NewsCard.astro';
 import PublicationItem from '../components/PublicationItem.astro';
 import VideoThumb from '../components/VideoThumb.astro';
-import { LAB, PI, RESEARCH_PILLARS } from '../consts';
+import { LAB } from '../consts';
+import { attachment } from '../lib/attachments';
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { getSortedPublications } from '../lib/publications';
+import { getPage, getResearchAreas, getSortedPublications } from '../lib/content';
+
+// 내용 수정: src/content/home.md (소개 문구·모집 안내), src/content/research.md
+const home = await getPage('home');
+const { Content: Lead } = await render(home);
+const recruit = home.data.recruit;
+const partners = (home.data.partners ?? []).flatMap((p) => {
+	const image = attachment(p.image);
+	return image ? [{ ...p, image }] : [];
+});
+const areas = await getResearchAreas();
 
 const news = (await getCollection('news'))
 	.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
@@ -18,20 +30,19 @@ const stats = [
 	{ label: '구성원', value: members.length },
 	{ label: '논문', value: pubs.length },
 	{ label: '연구 과제', value: projects.length },
-	{ label: '특허', value: PI.patents.length },
+	{ label: '연구 분야', value: areas.length },
 ];
-const highlights = RESEARCH_PILLARS.flatMap((p) => p.topics.map((t) => ({ ...t, pillar: p.titleEn })));
+const highlights = areas.flatMap((a) => a.data.topics.map((t) => ({ ...t, pillar: a.data.titleEn })));
 ---
 
-<BaseLayout>
+<BaseLayout description={home.data.description}>
 	<section slot="hero" class="hero">
 		<div class="hero-inner">
 			<p class="eyebrow">{LAB.university}</p>
 			<h1>{LAB.name}<span>{LAB.fullName}</span></h1>
-			<p class="lead">
-				RV LAB은 경기대학교 전자공학부에서 <strong>자율주행</strong>과 <strong>휴머노이드</strong> 관련 기술을
-				연구하는 연구실입니다.
-			</p>
+			<div class="lead">
+				<Lead />
+			</div>
 			<div class="cta">
 				<a class="btn primary" href="/research">연구 분야 보기</a>
 				<a class="btn" href="/publications">논문 목록</a>
@@ -57,15 +68,15 @@ const highlights = RESEARCH_PILLARS.flatMap((p) => p.topics.map((t) => ({ ...t, 
 		</div>
 		<ul class="pillars">
 			{
-				RESEARCH_PILLARS.map((p) => (
+				areas.map((a) => (
 					<li>
-						<a class="card pillar" href={`/research#${p.id}`}>
+						<a class="card pillar" href={`/research#${a.id}`}>
 							<span class="icon" aria-hidden="true">
-								{p.icon}
+								{a.data.icon}
 							</span>
-							<p class="en">{p.titleEn}</p>
-							<h3>{p.title}</h3>
-							<p class="muted">{p.summary}</p>
+							<p class="en">{a.data.titleEn}</p>
+							<h3>{a.data.title}</h3>
+							<p class="muted">{a.data.summary}</p>
 						</a>
 					</li>
 				))
@@ -119,15 +130,29 @@ const highlights = RESEARCH_PILLARS.flatMap((p) => p.topics.map((t) => ({ ...t, 
 	</section>
 
 	{
-		LAB.recruiting && (
+		partners.length > 0 && (
+			<section>
+				<div class="section-head">
+					<h2>협력 기관</h2>
+				</div>
+				<ul class="partners">
+					{partners.map((p) => (
+						<li title={p.name}>
+							<Image src={p.image} alt={p.name} height={64} />
+						</li>
+					))}
+				</ul>
+			</section>
+		)
+	}
+
+	{
+		recruit && (
 			<section class="recruit card">
 				<div>
-					<h2>학부연구생 / 대학원생 환영</h2>
-					<p>
-						위 연구에 관심이 있어 학부연구생·대학원 진학을 원하는 학생은 구글 설문지를 작성한 뒤 지도교수에게
-						메일 바랍니다.
-					</p>
-					<p class="muted small">{LAB.recruitNotice}</p>
+					<h2>{recruit.title}</h2>
+					<p>{recruit.text}</p>
+					{recruit.notice && <p class="muted small">{recruit.notice}</p>}
 				</div>
 				<a class="btn primary" href={`mailto:${LAB.email}`}>
 					메일 보내기
@@ -170,6 +195,9 @@ const highlights = RESEARCH_PILLARS.flatMap((p) => p.topics.map((t) => ({ ...t, 
 	.lead {
 		max-width: 36em;
 		font-size: 1.15rem;
+	}
+	.lead :global(p) {
+		margin: 0;
 	}
 	.cta {
 		display: flex;
@@ -299,6 +327,31 @@ const highlights = RESEARCH_PILLARS.flatMap((p) => p.topics.map((t) => ({ ...t, 
 		display: grid;
 		grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
 		gap: 1rem;
+	}
+	.partners {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+		gap: 1rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	.partners li {
+		display: grid;
+		place-items: center;
+		height: 88px;
+		padding: 0.75rem;
+		border: 1px solid var(--border);
+		border-radius: var(--radius);
+		background: #fff;
+	}
+	.partners img {
+		max-width: 100%;
+		max-height: 100%;
+		width: auto;
+		height: auto;
+		object-fit: contain;
+		border-radius: 0;
 	}
 	.recruit {
 		display: flex;

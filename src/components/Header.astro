@@ -1,12 +1,25 @@
 ---
+import { Image } from 'astro:assets';
 import { LAB } from '../consts';
+import { attachment } from '../lib/attachments';
 import HeaderLink from './HeaderLink.astro';
+
+// 로고: src/content/attachments/logo.png (파일을 바꾸면 로고가 바뀜)
+const logo = attachment('logo.png');
 ---
 
 <header>
 	<nav>
 		<a class="brand" href="/">
-			<span class="logo" aria-hidden="true">RV</span>
+			{
+				logo ? (
+					<Image class="logo" src={logo} width={72} height={72} alt="" />
+				) : (
+					<span class="logo" aria-hidden="true">
+						RV
+					</span>
+				)
+			}
 			<span class="brand-text">
 				<strong>{LAB.name}</strong>
 				<small>{LAB.fullName}</small>
@@ -54,6 +67,7 @@ import HeaderLink from './HeaderLink.astro';
 		width: 36px;
 		height: 36px;
 		border-radius: 10px;
+		object-fit: cover;
 		background: var(--accent);
 		color: #fff;
 		font-weight: 700;

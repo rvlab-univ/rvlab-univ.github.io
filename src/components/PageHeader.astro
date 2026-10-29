@@ -1,0 +1,31 @@
+---
+import { type CollectionEntry, render } from 'astro:content';
+
+interface Props {
+	page: CollectionEntry<'pages'>;
+	eyebrow?: string;
+	// 제목 대신 쓸 문구 (예: 분류별 논문 페이지)
+	title?: string;
+}
+
+const { page, eyebrow, title = page.data.title } = Astro.props;
+const { Content } = await render(page);
+---
+
+<header class="page-header">
+	{eyebrow && <p class="eyebrow">{eyebrow}</p>}
+	<h1>{title}</h1>
+	{
+		page.body && (
+			<div class="prose">
+				<Content />
+			</div>
+		)
+	}
+</header>
+
+<style>
+	.prose {
+		color: var(--text-muted);
+	}
+</style>

@@ -1,20 +1,26 @@
 ---
-import { getCollection } from 'astro:content';
+import { Image } from 'astro:assets';
+import { getCollection, render } from 'astro:content';
+import PageHeader from '../components/PageHeader.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { attachment } from '../lib/attachments';
+import { getPage } from '../lib/content';
 
-const projects = (await getCollection('projects')).sort((a, b) => b.data.no - a.data.no);
+// 내용 수정: src/content/projects.md
+const page = await getPage('projects');
+const projects = await Promise.all(
+	(await getCollection('projects'))
+		.sort((a, b) => b.data.no - a.data.no)
+		.map(async (p) => ({ data: p.data, Content: (await render(p)).Content })),
+);
 ---
 
-<BaseLayout title="프로젝트" description="RV LAB 지도교수가 참여한 연구 과제">
-	<header class="page-header">
-		<p class="eyebrow">Projects</p>
-		<h1>연구 과제</h1>
-		<p>지도교수가 참여·수행한 산학·국책 연구 과제입니다.</p>
-	</header>
+<BaseLayout title={page.data.title} description={page.data.description}>
+	<PageHeader page={page} eyebrow="Projects" />
 
 	<ol class="projects">
 		{
-			projects.map(({ data }) => (
+			projects.map(({ data, Content }) => (
 				<li class="card project">
 					<div class="no" aria-hidden="true">
 						{String(data.no).padStart(2, '0')}
@@ -28,13 +34,13 @@ const projects = (await getCollection('projects')).sort((a, b) => b.data.no - a.
 							<span>{data.funder}</span>
 							<span>{data.period}</span>
 						</p>
-						<p>{data.abstract}</p>
-						<ul class="acts">
-							{data.activities.map((a) => (
-								<li>{a}</li>
-							))}
-						</ul>
+						<div class="prose body">
+							<Content />
+						</div>
 					</div>
+					{attachment(data.image) && (
+						<Image class="cover" src={attachment(data.image)!} alt={data.imageAlt ?? ''} width={560} />
+					)}
 				</li>
 			))
 		}
@@ -52,6 +58,23 @@ const projects = (await getCollection('projects')).sort((a, b) => b.data.no - a.
 	.project {
 		display: flex;
 		gap: 1.5rem;
+	}
+	.project > div:nth-child(2) {
+		flex: 1;
+		min-width: 0;
+	}
+	.cover {
+		flex: none;
+		align-self: flex-start;
+		width: 260px;
+		height: auto;
+		border-radius: 10px;
+	}
+	.body :global(img) {
+		display: block;
+		max-width: min(100%, 560px);
+		margin: 1rem 0;
+		border-radius: 10px;
 	}
 	.no {
 		flex: none;
@@ -79,19 +102,23 @@ const projects = (await getCollection('projects')).sort((a, b) => b.data.no - a.
 		content: '·';
 		margin-right: 1rem;
 	}
-	.project p {
-		margin-bottom: 0.6rem;
+	.body :global(h3) {
+		margin: 1rem 0 0.4rem;
+		font-size: 0.8rem;
 	}
-	.acts {
-		margin: 0;
-		padding-left: 1.1rem;
+	.body :global(ul) {
 		color: var(--text-muted);
 		font-size: 0.92rem;
 	}
-	@media (max-width: 560px) {
+	@media (max-width: 760px) {
 		.project {
 			flex-direction: column;
 			gap: 0.25rem;
+		}
+		.cover {
+			order: -1;
+			width: 100%;
+			margin-bottom: 0.75rem;
 		}
 	}
 </style>

@@ -1,60 +1,115 @@
 import { defineCollection } from 'astro:content';
-import { file, glob } from 'astro/loaders';
 import { z } from 'astro/zod';
+import { markdownLoader } from './lib/markdown-loader';
+import {
+	parseMembers,
+	parseNews,
+	parsePage,
+	parseProjects,
+	parsePublications,
+	parseResearch,
+} from './lib/parsers';
 
-// 연구실 소식: src/content/news/*.md
-const news = defineCollection({
-	loader: glob({ base: './src/content/news', pattern: '**/*.{md,mdx}' }),
-	schema: ({ image }) =>
-		z.object({
-			title: z.string(),
-			description: z.string(),
-			pubDate: z.coerce.date(),
-			category: z.enum(['공지', '수상', '논문', '행사', '세미나']),
-			heroImage: z.optional(image()),
-		}),
-});
+// 내용은 src/content/ 의 Markdown 문서에서 작성합니다. 작성 규칙은 각 문서 맨 위 주석 참고.
+const dir = './src/content';
+const link = z.object({ label: z.string(), url: z.string() });
 
-// 논문 목록: src/data/publications.json
-const publications = defineCollection({
-	loader: file('./src/data/publications.json'),
+// 각 페이지의 제목·소개 문구 (# 제목 + 첫 ## 이전 문단)
+const pages = defineCollection({
+	loader: markdownLoader({
+		name: 'pages',
+		files: ['home', 'research', 'members', 'publications', 'projects'].map((f) => `${dir}/${f}.md`).concat(`${dir}/news/_index.md`),
+		parse: parsePage,
+	}),
 	schema: z.object({
 		title: z.string(),
-		// 원문 표기 그대로 (*: equal contribution, †: corresponding author)
+		description: z.string(),
+		recruit: z.object({ title: z.string(), text: z.string(), notice: z.string().optional() }).optional(),
+		partners: z.array(z.object({ name: z.string(), image: z.string() })).optional(),
+	}),
+});
+
+const research = defineCollection({
+	loader: markdownLoader({ name: 'research', files: [`${dir}/research.md`], parse: parseResearch }),
+	schema: z.object({
+		kind: z.enum(['area', 'statement']),
+		order: z.number(),
+		title: z.string(),
+		titleEn: z.string().optional(),
+		icon: z.string().optional(),
+		video: z.string().optional(),
+		summary: z.string().optional(),
+		keywords: z.array(z.string()).default([]),
+		topics: z
+			.array(
+				z.object({
+					title: z.string(),
+					summary: z.string(),
+					paper: z.string(),
+					video: z.string().optional(),
+					status: z.string().optional(),
+				}),
+			)
+			.default([]),
+	}),
+});
+
+const news = defineCollection({
+	loader: markdownLoader({ name: 'news', dir: `${dir}/news`, parse: parseNews }),
+	schema: z.object({
+		title: z.string(),
+		description: z.string(),
+		image: z.string().optional(),
+		pubDate: z.coerce.date(),
+		category: z.enum(['공지', '수상', '논문', '행사', '세미나']),
+	}),
+});
+
+const publications = defineCollection({
+	loader: markdownLoader({ name: 'publications', files: [`${dir}/publications.md`], parse: parsePublications }),
+	schema: z.object({
+		title: z.string(),
 		authors: z.string(),
 		venue: z.string(),
 		year: z.number(),
 		category: z.enum(['intl-journal', 'intl-conference', 'domestic-journal', 'domestic-conference']),
-		underReview: z.boolean().default(false),
+		underReview: z.boolean(),
 		award: z.string().optional(),
-		links: z.array(z.object({ label: z.string(), url: z.url() })).default([]),
+		awardUrl: z.string().optional(),
+		links: z.array(link),
+		order: z.number(),
 	}),
 });
 
-// 구성원: src/data/members.json
 const members = defineCollection({
-	loader: file('./src/data/members.json'),
+	loader: markdownLoader({ name: 'members', files: [`${dir}/members.md`], parse: parseMembers }),
 	schema: z.object({
 		name: z.string(),
+		nameEn: z.string().optional(),
 		role: z.enum(['professor', 'phd', 'ms', 'undergrad', 'alumni']),
-		team: z.enum(['robot', 'driving']).optional(),
-		research: z.array(z.string()),
-		order: z.number().default(0),
+		group: z.string(),
+		team: z.string().optional(),
+		teamDesc: z.string().optional(),
+		title: z.string().optional(),
+		email: z.string().optional(),
+		links: z.array(link).default([]),
+		research: z.array(z.string()).default([]),
+		aliases: z.array(z.string()).default([]),
+		order: z.number(),
 	}),
 });
 
-// 프로젝트: src/data/projects.json
 const projects = defineCollection({
-	loader: file('./src/data/projects.json'),
+	loader: markdownLoader({ name: 'projects', files: [`${dir}/projects.md`], parse: parseProjects }),
 	schema: z.object({
 		no: z.number(),
 		title: z.string(),
 		funder: z.string(),
 		period: z.string(),
-		lead: z.boolean().default(false),
-		abstract: z.string(),
-		activities: z.array(z.string()),
+		lead: z.boolean(),
+		image: z.string().optional(),
+		imageAlt: z.string().optional(),
 	}),
 });
 
-export const collections = { news, publications, members, projects };
+export const collections = { pages, research, news, publications, members, projects };

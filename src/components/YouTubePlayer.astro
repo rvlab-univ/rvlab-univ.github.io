@@ -1,0 +1,41 @@
+---
+// data-yt="<영상 ID>" 가 붙은 썸네일 링크를 클릭하면 그 자리를 YouTube 플레이어로 바꾼다.
+// (Ctrl/Cmd/Shift 클릭은 원래대로 YouTube 새 탭으로 열린다)
+---
+
+<script>
+	document.addEventListener('click', (event) => {
+		const link = (event.target as Element | null)?.closest<HTMLAnchorElement>('a[data-yt]');
+		if (!link || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+		event.preventDefault();
+
+		const id = link.dataset.yt!;
+		const iframe = document.createElement('iframe');
+		iframe.src = `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0`;
+		iframe.title = link.querySelector('img')?.alt ?? 'YouTube 영상';
+		iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+		iframe.allowFullscreen = true;
+		iframe.className = 'yt-frame';
+
+		// 링크와 같은 클래스·속성(스타일)을 가진 상자로 바꿔 크기와 캡션을 유지한다
+		const box = document.createElement('div');
+		for (const { name, value } of Array.from(link.attributes)) {
+			if (!['href', 'target', 'rel', 'data-yt'].includes(name)) box.setAttribute(name, value);
+		}
+		box.classList.add('playing');
+		box.append(iframe, ...Array.from(link.querySelectorAll('.yt-caption')));
+		link.replaceWith(box);
+	});
+</script>
+
+<style is:global>
+	.yt-frame {
+		display: block;
+		width: 100%;
+		aspect-ratio: 16 / 9;
+		border: 0;
+	}
+	.video.playing .yt-frame {
+		height: 100%;
+	}
+</style>

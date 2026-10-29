@@ -1,8 +1,8 @@
 ---
-import { Image } from 'astro:assets';
 import { type CollectionEntry, getCollection, render } from 'astro:content';
 import FormattedDate from '../../components/FormattedDate.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { attachment } from '../../lib/attachments';
 
 export async function getStaticPaths() {
 	const posts = (await getCollection('news')).sort(
@@ -21,11 +21,11 @@ interface Props {
 }
 
 const { post, newer, older } = Astro.props;
-const { title, description, pubDate, category, heroImage } = post.data;
+const { title, description, pubDate, category } = post.data;
 const { Content } = await render(post);
 ---
 
-<BaseLayout title={title} description={description} image={heroImage}>
+<BaseLayout title={title} description={description} image={attachment(post.data.image)}>
 	<article>
 		<a class="back" href="/news">← 소식 목록</a>
 		<header>
@@ -34,9 +34,7 @@ const { Content } = await render(post);
 				<span class="muted"><FormattedDate date={pubDate} /></span>
 			</div>
 			<h1>{title}</h1>
-			<p class="muted lead">{description}</p>
 		</header>
-		{heroImage && <Image class="hero" width={1020} height={510} src={heroImage} alt="" />}
 		<div class="prose">
 			<Content />
 		</div>
@@ -81,14 +79,6 @@ const { Content } = await render(post);
 		align-items: center;
 		margin-bottom: 0.75rem;
 		font-size: 0.9rem;
-	}
-	.lead {
-		font-size: 1.05rem;
-	}
-	.hero {
-		display: block;
-		width: 100%;
-		margin: 1.5rem 0;
 	}
 	.prose {
 		margin-top: 2rem;

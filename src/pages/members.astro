@@ -1,138 +1,106 @@
 ---
-import { getCollection } from 'astro:content';
-import { PI } from '../consts';
+import { getCollection, render } from 'astro:content';
+import Avatar from '../components/Avatar.astro';
+import PageHeader from '../components/PageHeader.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { getPage } from '../lib/content';
 
-const TEAMS = [
-	{ key: 'robot', label: 'Robot Team', desc: '휴머노이드 · Imitation Learning · Sim2Real' },
-	{ key: 'driving', label: 'Autonomous Navigation/Driving Team', desc: 'VLN · Segmentation · 4D Radar' },
-] as const;
+// 내용 수정: src/content/members.md
+const page = await getPage('members');
+const members = (await getCollection('members')).sort((a, b) => a.data.order - b.data.order);
 
-const students = (await getCollection('members'))
-	.filter((m) => m.data.role !== 'professor')
-	.sort((a, b) => a.data.order - b.data.order);
-const teams = TEAMS.map((team) => ({
-	...team,
-	people: students.filter((m) => m.data.team === team.key),
+const professors = await Promise.all(
+	members
+		.filter((m) => m.data.role === 'professor')
+		.map(async (m) => ({ ...m, Content: (await render(m)).Content })),
+);
+// 학생: 문서의 ## 구분 → ### 팀 순서대로 묶는다
+const students = members.filter((m) => m.data.role !== 'professor');
+const groups = [...Map.groupBy(students, (m) => m.data.group)].map(([title, people]) => ({
+	title,
+	teams: [...Map.groupBy(people, (m) => m.data.team ?? '')].map(([label, people]) => ({
+		label,
+		desc: people[0].data.teamDesc,
+		people,
+	})),
+	count: people.length,
 }));
 ---
 
-<BaseLayout title="구성원" description="RV LAB 지도교수와 구성원 소개">
-	<header class="page-header">
-		<p class="eyebrow">People</p>
-		<h1>구성원</h1>
-	</header>
+<BaseLayout title={page.data.title} description={page.data.description}>
+	<PageHeader page={page} eyebrow="People" />
 
-	<section class="pi card" id="pi">
-		<div class="pi-head">
-			<div class="avatar big" aria-hidden="true">{PI.name.slice(0, 1)}</div>
-			<div>
-				<p class="role">Principal Investigator</p>
-				<h2>{PI.name} <small>{PI.nameEn}</small></h2>
-				<p class="muted">{PI.title}</p>
-				<p class="contact">
-					<a href={`mailto:${PI.email}`}>{PI.email}</a> ·
-					<a href={PI.blog} target="_blank" rel="noopener">Naver Blog</a>
-				</p>
-				<ul class="interests">
-					{PI.interests.map((i) => <li class="badge">{i}</li>)}
-				</ul>
-			</div>
-		</div>
-
-		<div class="cv">
-			<div>
-				<h3>Work Experience</h3>
-				<ol class="timeline">
-					{
-						PI.experience.map((e) => (
-							<li>
-								<span class="period">{e.period}</span>
-								<strong>{e.role}</strong>
-								<span>{e.org}</span>
-								<span class="muted">{e.detail}</span>
-							</li>
-						))
-					}
-				</ol>
-			</div>
-			<div>
-				<h3>Education</h3>
-				<ol class="timeline">
-					{
-						PI.education.map((e) => (
-							<li>
-								<span class="period">{e.period}</span>
-								<strong>{e.degree}</strong>
-								<span class="muted">{e.detail}</span>
-							</li>
-						))
-					}
-				</ol>
-			</div>
-		</div>
-
-		<details>
-			<summary>초청 강연 · 특허 · 리뷰어</summary>
-			<div class="cv">
-				<div>
-					<h3>Invited Talks</h3>
-					<ul class="plain">
-						{
-							PI.talks.map((t) => (
-								<li>
-									<span class="period">{t.date}</span> {t.host}, “{t.title}”
-								</li>
-							))
-						}
-					</ul>
-				</div>
-				<div>
-					<h3>Patents</h3>
-					<ul class="plain">
-						{
-							PI.patents.map((p) => (
-								<li>
-									<span class="period">{p.date}</span> <code>{p.id}</code> {p.title}
-								</li>
-							))
-						}
-					</ul>
-					<h3>Academic Reviewer</h3>
-					<ul class="plain">
-						{PI.reviewer.map((r) => <li>{r}</li>)}
-					</ul>
-				</div>
-			</div>
-		</details>
-	</section>
-
-	<h2 class="group-title">Undergraduate Students <small class="muted">{students.length}명</small></h2>
 	{
-		teams.map((team) => (
-			<section class="team">
-				<h3>
-					{team.label} <small class="muted">{team.desc}</small>
-				</h3>
-				<ul class="people">
-					{team.people.map(({ data }) => (
-						<li class="card person">
-							<div class="avatar" aria-hidden="true">
-								{data.name.slice(0, 1)}
-							</div>
-							<div>
-								<p class="name">{data.name}</p>
-								<p class="research">{data.research.join(' · ')}</p>
-							</div>
-						</li>
-					))}
-				</ul>
+		professors.map(({ data, Content }) => (
+			<section class="pi card">
+				<div class="pi-head">
+					<Avatar name={data.name} width={132} />
+					<div>
+						<p class="role">Principal Investigator</p>
+						<h2>
+							{data.name} {data.nameEn && <small>{data.nameEn}</small>}
+						</h2>
+						{data.title && <p class="muted">{data.title}</p>}
+						<p class="contact">
+							{data.email && <a href={`mailto:${data.email}`}>{data.email}</a>}
+							{data.links.map((l) => (
+								<>
+									{' · '}
+									<a href={l.url} target="_blank" rel="noopener">
+										{l.label}
+									</a>
+								</>
+							))}
+						</p>
+						<ul class="interests">
+							{data.research.map((i) => (
+								<li class="badge">{i}</li>
+							))}
+						</ul>
+					</div>
+				</div>
+				<div class="prose cv">
+					<Content />
+				</div>
 			</section>
+		))
+	}
+
+	{
+		groups.map((group) => (
+			<>
+				<h2 class="group-title">
+					{group.title} <small class="muted">{group.count}명</small>
+				</h2>
+				{group.teams.map((team) => (
+					<section class="team">
+						{team.label && (
+							<h3>
+								{team.label} {team.desc && <small class="muted">{team.desc}</small>}
+							</h3>
+						)}
+						<ul class="people">
+							{team.people.map(({ data }) => (
+								<li class="card person">
+									<Avatar name={data.name} width={66} />
+									<div>
+										<p class="name">{data.name}</p>
+										<p class="research">{data.research.join(' · ')}</p>
+									</div>
+								</li>
+							))}
+						</ul>
+					</section>
+				))}
+			</>
 		))
 	}
 </BaseLayout>
 
 <style>
+	.pi + .pi {
+		margin-top: 1.5rem;
+	}
 	.pi-head {
 		display: flex;
 		gap: 1.5rem;
@@ -166,70 +134,31 @@ const teams = TEAMS.map((team) => ({
 		padding: 0;
 		list-style: none;
 	}
+	/* CV 본문: h3 단위로 두 열 배치 */
 	.cv {
-		display: grid;
-		grid-template-columns: 1fr 1fr;
-		gap: 2rem;
-		margin-top: 2rem;
-	}
-	.cv h3 {
-		font-size: 1rem;
-		text-transform: uppercase;
-		letter-spacing: 0.04em;
-		color: var(--text-muted);
-	}
-	.timeline {
-		margin: 0;
-		padding: 0 0 0 1rem;
-		border-left: 2px solid var(--border);
-		list-style: none;
-	}
-	.timeline li {
-		display: flex;
-		flex-direction: column;
-		margin-bottom: 1rem;
+		columns: 2 340px;
+		column-gap: 2.5rem;
+		margin-top: 1.5rem;
 		font-size: 0.92rem;
-		line-height: 1.5;
 	}
-	.period {
-		color: var(--accent);
-		font-size: 0.8rem;
-		font-weight: 700;
+	.cv :global(h4) {
+		margin: 1.5rem 0 0.75rem;
+		color: var(--text-muted);
+		font-size: 0.95rem;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
 	}
-	details {
-		margin-top: 1rem;
-		padding-top: 1rem;
-		border-top: 1px solid var(--border);
+	.cv :global(h4:first-child) {
+		margin-top: 0;
 	}
-	summary {
-		cursor: pointer;
-		font-weight: 700;
+	.cv :global(h4) {
+		break-after: avoid;
 	}
-	.plain {
-		margin: 0 0 1.5rem;
-		padding: 0;
-		list-style: none;
-		font-size: 0.9rem;
+	.cv :global(ul) {
+		break-inside: avoid-column;
 	}
-	.plain li + li {
-		margin-top: 0.5rem;
-	}
-	.avatar {
-		flex: none;
-		display: grid;
-		place-items: center;
-		width: 52px;
-		height: 52px;
-		border-radius: 50%;
-		background: var(--accent-soft);
-		color: var(--accent);
-		font-size: 1.2rem;
-		font-weight: 700;
-	}
-	.avatar.big {
-		width: 96px;
-		height: 96px;
-		font-size: 2.2rem;
+	.cv :global(li) {
+		line-height: 1.55;
 	}
 	.group-title {
 		margin-top: 3.5rem;
@@ -271,10 +200,6 @@ const teams = TEAMS.map((team) => ({
 		line-height: 1.45;
 	}
 	@media (max-width: 720px) {
-		.cv {
-			grid-template-columns: 1fr;
-			gap: 0;
-		}
 		.pi-head {
 			flex-direction: column;
 		}

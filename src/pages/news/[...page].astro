@@ -2,9 +2,11 @@
 import type { GetStaticPaths } from 'astro';
 import { getCollection } from 'astro:content';
 import NewsCard from '../../components/NewsCard.astro';
+import PageHeader from '../../components/PageHeader.astro';
 import Pagination from '../../components/Pagination.astro';
 import { NEWS_PAGE_SIZE } from '../../consts';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getPage } from '../../lib/content';
 
 // /news, /news/2, /news/3 ... 을 생성
 export const getStaticPaths = (async ({ paginate }) => {
@@ -15,14 +17,12 @@ export const getStaticPaths = (async ({ paginate }) => {
 }) satisfies GetStaticPaths;
 
 const { page } = Astro.props;
+// 내용 수정: src/content/news/_index.md, src/content/news/*.md
+const info = await getPage('news');
 ---
 
-<BaseLayout title="소식" description="RV LAB의 공지, 수상, 논문, 세미나 소식">
-	<header class="page-header">
-		<p class="eyebrow">News</p>
-		<h1>연구실 소식</h1>
-		<p>공지사항, 수상, 논문 게재, 세미나 소식을 전합니다.</p>
-	</header>
+<BaseLayout title={info.data.title} description={info.data.description}>
+	<PageHeader page={info} eyebrow="News" />
 
 	<ul class="grid">
 		{
