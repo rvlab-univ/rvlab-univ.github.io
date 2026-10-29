@@ -28,12 +28,6 @@ const firstParagraph = (nodes: Doc['root']['children']) => {
 	return p ? textOf(p.children.filter((c) => c.type !== 'image')) : '';
 };
 
-// 노드 안의 모든 이미지
-function images(node: Doc['root']['children'][number]): Image[] {
-	if (node.type === 'image') return [node];
-	return 'children' in node ? (node.children as Doc['root']['children']).flatMap(images) : [];
-}
-
 // 사진만 있는 문단이면 그 사진
 function imageOnly(node: Doc['root']['children'][number]): Image | undefined {
 	if (node.type !== 'paragraph') return undefined;
@@ -56,26 +50,27 @@ function firstImage(nodes: Doc['root']['children']): string | undefined {
 // 페이지 제목과 소개 문구: # 제목, 그 아래 첫 ## 전까지가 소개
 export function parsePage(doc: Doc): Entry[] {
 	const page = titled(doc);
-	const { intro, sections } = splitSections(page.nodes, 2);
+	const { intro } = splitSections(page.nodes, 2);
 	const id = doc.file.includes('news') ? 'news' : doc.file.replace(/^.*\/|\.md$/g, '');
 	const data: Record<string, unknown> = { title: page.title, description: firstParagraph(intro) };
 
-	// 홈: "## 협력 기관" 절은 로고 목록, 그 밖의 ## 절은 모집 안내 상자
-	const isPartners = (t: string) => /^(협력 기관|Collaborators)$/i.test(t);
-	const partners = id === 'home' ? sections.find((s) => isPartners(s.title)) : undefined;
-	if (partners) {
-		data.partners = partners.nodes.flatMap((n) => images(n)).map((img) => ({ name: img.alt ?? '', image: img.url }));
-	}
-	const recruit = id === 'home' ? sections.find((s) => !isPartners(s.title)) : undefined;
-	if (recruit) {
-		const s = recruit;
-		data.recruit = {
-			title: s.title,
-			text: textOf(s.nodes.filter((n) => n.type === 'paragraph')),
-			notice: textOf(s.nodes.filter((n) => n.type === 'blockquote')) || undefined,
-		};
-	}
 	return [{ id, data, body: sourceOf(doc, intro) }];
+}
+
+// 홈 아래쪽 절: home.md 의 ## 절을 쓴 순서대로 전부 보여준다.
+// 제목 글자가 아니라 내용 모양으로 종류를 정한다 — 사진만 있는 절은 로고 목록, 그 밖은 글 상자.
+export function parseHome(doc: Doc): Entry[] {
+	return splitSections(titled(doc).nodes, 2).sections.map((s, order) => {
+		if (!s.nodes.length) fail(doc, s.heading, `"## ${s.title}" 절에 내용이 없습니다`);
+		const logos = s.nodes.every(
+			(n) => n.type === 'paragraph' && n.children.every((c) => c.type === 'image' || (c.type === 'text' && !c.value.trim())),
+		);
+		return {
+			id: `section-${order + 1}`,
+			data: { title: s.title, order, kind: logos ? 'logos' : 'text' },
+			body: sourceOf(doc, s.nodes),
+		};
+	});
 }
 
 // 연구 분야: ## 🤖 이름 (English) / ### 대표 연구 / ## Research Statement: 제목

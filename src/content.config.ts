@@ -2,6 +2,7 @@ import { defineCollection } from 'astro:content';
 import { z } from 'astro/zod';
 import { markdownLoader } from './lib/markdown-loader';
 import {
+	parseHome,
 	parseMembers,
 	parseNews,
 	parsePage,
@@ -24,8 +25,16 @@ const pages = defineCollection({
 	schema: z.object({
 		title: z.string(),
 		description: z.string(),
-		recruit: z.object({ title: z.string(), text: z.string(), notice: z.string().optional() }).optional(),
-		partners: z.array(z.object({ name: z.string(), image: z.string() })).optional(),
+	}),
+});
+
+// 홈 아래쪽 절 (home.md 의 ## 절, 쓴 순서대로)
+const home = defineCollection({
+	loader: markdownLoader({ name: 'home', files: [`${dir}/home.md`], parse: parseHome }),
+	schema: z.object({
+		title: z.string(),
+		order: z.number(),
+		kind: z.enum(['text', 'logos']),
 	}),
 });
 
@@ -112,4 +121,4 @@ const projects = defineCollection({
 	}),
 });
 
-export const collections = { pages, research, news, publications, members, projects };
+export const collections = { pages, home, research, news, publications, members, projects };
