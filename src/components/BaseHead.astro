@@ -37,7 +37,9 @@ const fullTitle = title === SITE_TITLE ? title : `${title} | ${SITE_TITLE}`;
 />
 <meta name="generator" content={Astro.generator} />
 
-<Font cssVariable="--font-body" preload />
+<!-- preload 하지 않는다: Noto Sans KR 은 unicode-range 조각 121개(3.6MB)라 전부 미리 받게 된다.
+     font-display: swap 이므로 페이지에 쓰인 글자의 조각만 필요할 때 받는다. -->
+<Font cssVariable="--font-body" />
 
 <!-- Canonical URL -->
 <link rel="canonical" href={canonicalURL} />
