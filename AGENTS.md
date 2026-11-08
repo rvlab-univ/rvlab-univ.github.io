@@ -167,6 +167,16 @@ category: 세미나
 - 문서 해석 규칙: `src/lib/parsers.ts`, 로더: `src/lib/markdown-loader.ts`, 데이터 형식(zod 스키마): `src/content.config.ts`
 - 새 정보나 새 페이지를 추가할 때는 아래 "새 요소 추가 정책"을 따른다.
 
+## 디자인 작업
+
+디자인·화면을 바꾸는 요청에는 이 저장소에 들어 있는 스킬을 쓴다. Claude Code는 `.claude/skills/`를 자동으로 읽고,
+다른 에이전트(Codex 등)는 해당 `SKILL.md`를 직접 읽는다.
+
+- 화면을 새로 만들거나 모양을 바꿀 때: `.claude/skills/frontend-design/SKILL.md` (Anthropic, Apache-2.0)
+- 화면 점검·접근성 검토: `.claude/skills/web-design-guidelines/SKILL.md` (vercel-labs/agent-skills, MIT)
+- 스킬과 이 문서가 다르면 이 문서를 따른다. 스킬은 문구나 자리표시 내용을 직접 지어내라고 하지만,
+  이 사이트의 글은 `src/content/`의 실제 내용만 쓴다 ("사실을 지어내지 않는다").
+
 ## 새 요소 추가 정책
 
 새 정보 항목(예: 졸업생 진로, 논문 DOI), 새 섹션(예: 홈의 수상 목록), 새 페이지(예: 강의, 장비)를 추가할 때의 규칙이다.
