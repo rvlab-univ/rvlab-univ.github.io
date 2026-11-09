@@ -64,20 +64,20 @@ const byYear = Map.groupBy(page.data, (p) => p.data.year);
 	.tabs a {
 		padding: 0.4rem 0.9rem;
 		border: 1px solid var(--border);
-		border-radius: 999px;
+		border-radius: 0;
 		color: var(--text-muted);
 		font-size: 0.9rem;
 		font-weight: 500;
 		text-decoration: none;
 	}
 	.tabs a:hover {
-		border-color: var(--accent);
+		border-color: var(--ink);
 		color: var(--accent);
 	}
 	.tabs a.active {
-		border-color: var(--accent);
-		background: var(--accent);
-		color: #fff;
+		border-color: var(--ink);
+		background: var(--ink);
+		color: var(--paper);
 	}
 	.tabs span {
 		opacity: 0.7;

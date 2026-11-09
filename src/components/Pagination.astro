@@ -113,7 +113,7 @@ if (lastPage > 1) items.push({ type: 'page', n: lastPage });
 		height: 2.5rem;
 		padding: 0 0.75rem;
 		border: 1px solid var(--border);
-		border-radius: 10px;
+		border-radius: 0;
 		background: var(--card);
 		color: var(--text);
 		font-size: 0.95rem;
@@ -126,13 +126,13 @@ if (lastPage > 1) items.push({ type: 'page', n: lastPage });
 	}
 	a.num:hover,
 	a.step:hover {
-		border-color: var(--accent);
+		border-color: var(--ink);
 		color: var(--accent);
 	}
 	.current {
-		border-color: var(--accent);
-		background: var(--accent);
-		color: #fff;
+		border-color: var(--ink);
+		background: var(--ink);
+		color: var(--paper);
 	}
 	.disabled {
 		opacity: 0.4;

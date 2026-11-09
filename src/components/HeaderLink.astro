@@ -20,14 +20,14 @@ const isActive = href === pathname || href === '/' + (subpath?.[0] || '');
 		font-weight: 500;
 		text-decoration: none;
 		white-space: nowrap;
-		border-bottom: 3px solid transparent;
+		border-bottom: 2px solid transparent;
 	}
 	a:hover {
 		color: var(--text);
 	}
 	a.active {
-		color: var(--accent);
-		border-bottom-color: var(--accent);
+		color: var(--text);
+		border-bottom-color: var(--focus);
 	}
 	@media (max-width: 720px) {
 		a {

@@ -16,7 +16,7 @@
 	--border: #d9dbd7;
 	--card: #ffffff;
 	--shadow: 0 1px 2px rgba(17, 18, 20, 0.04);
-	--radius: 2px;
+	--radius: 0;
 	--max-width: 1200px;
 }
 
@@ -75,10 +75,11 @@ h4 {
 	letter-spacing: -0.02em;
 }
 h1 {
-	font-size: 2.25rem;
+	font-size: clamp(2.25rem, 4.5vw, 3.25rem);
+	line-height: 1.1;
 }
 h2 {
-	font-size: 1.6rem;
+	font-size: 1.75rem;
 }
 h3 {
 	font-size: 1.2rem;
@@ -98,12 +99,12 @@ p {
 img {
 	max-width: 100%;
 	height: auto;
-	border-radius: var(--radius);
+	border-radius: 0;
 }
 
 code {
 	padding: 0.1em 0.35em;
-	border-radius: 4px;
+	border-radius: 0;
 	background: var(--bg-alt);
 	font-size: 0.9em;
 }
@@ -116,14 +117,8 @@ hr {
 
 /* 공용 유틸리티 */
 .page-header {
-	margin-bottom: 2.5rem;
-}
-.page-header .eyebrow {
-	margin: 0 0 0.25rem;
-	color: var(--accent);
-	font-size: 0.85rem;
-	font-weight: 700;
-	letter-spacing: 0.08em;
+	margin-bottom: 3rem;
+	padding-top: 1rem;
 }
 .page-header p {
 	color: var(--text-muted);
@@ -132,19 +127,17 @@ hr {
 .card {
 	padding: 1.5rem;
 	border: 1px solid var(--border);
-	border-radius: var(--radius);
 	background: var(--card);
-	box-shadow: var(--shadow);
 }
 
+/* 작은 분류 표시: 네모, 연한 초록 바탕 */
 .badge {
 	display: inline-block;
-	padding: 0.1rem 0.55rem;
-	border-radius: 999px;
+	padding: 0.1rem 0.45rem;
 	background: var(--accent-soft);
 	color: var(--accent);
 	font-size: 0.78rem;
-	font-weight: 700;
+	font-weight: 500;
 	white-space: nowrap;
 }
 
@@ -191,7 +184,6 @@ hr {
 	margin: 1.75rem 0 0.75rem;
 	color: var(--text-muted);
 	font-size: 0.95rem;
-	letter-spacing: 0.04em;
 }
 .prose ul,
 .prose ol {
@@ -200,13 +192,6 @@ hr {
 }
 .prose li + li {
 	margin-top: 0.4rem;
-}
-.prose .eyebrow {
-	margin: 0;
-	color: var(--accent);
-	font-size: 0.85rem;
-	font-weight: 700;
-	letter-spacing: 0.05em;
 }
 
 /* Markdown 본문의 YouTube 영상 (YouTube 주소만 있는 줄) */
@@ -223,7 +208,7 @@ hr {
 	position: relative;
 	display: block;
 	overflow: hidden;
-	border-radius: 10px;
+	border-radius: 0;
 	background: #000;
 	color: #fff;
 	text-decoration: none;
@@ -276,4 +261,62 @@ hr {
 	font-weight: 500;
 	font-size: 12px;
 	line-height: 1;
+}
+
+/* 절 머리: 왼쪽 제목, 오른쪽 "전체 보기" 링크 */
+.section-head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 12px 20px;
+	margin-bottom: 32px;
+}
+.section-head h2 {
+	margin: 0;
+	font-size: 2rem;
+}
+.section-head > a {
+	margin-left: auto;
+	color: var(--text);
+	font-size: 0.95rem;
+	font-weight: 500;
+}
+
+/* 버튼: 먹색 네모 */
+.btn {
+	display: inline-block;
+	padding: 12px 20px;
+	background: var(--ink);
+	color: var(--paper);
+	font-weight: 500;
+	text-decoration: none;
+}
+.btn:hover {
+	background: var(--accent-dark);
+	color: #fff;
+}
+
+/* 사진 위 얼굴 박스: 마우스를 올리면 이름과 점수 */
+.face {
+	position: relative;
+}
+.face .face-box {
+	position: absolute;
+	inset: 16% 18% 38% 18%;
+	border: 1.5px solid var(--detect);
+	opacity: 0;
+	transition: opacity 0.15s;
+	pointer-events: none;
+}
+.face:hover .face-box {
+	opacity: 1;
+}
+.face-box span {
+	position: absolute;
+	left: -1.5px;
+	bottom: 100%;
+	padding: 4px 6px;
+	background: var(--detect);
+	color: #fff;
+	white-space: nowrap;
 }

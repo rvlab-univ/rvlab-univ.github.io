@@ -65,8 +65,8 @@
 
 	if (heads.length) {
 		addEventListener('scroll', () => requestAnimationFrame(pick), { passive: true });
-		addEventListener('resize', () => place(false));
-		// 서체가 늦게 바뀌면 제목 크기가 달라지므로 다시 맞춘다
+		// 사진·서체가 늦게 불려 와 페이지 높이가 바뀌면 박스가 제자리에 남는다. 높이가 바뀔 때마다 다시 맞춘다
+		new ResizeObserver(() => place(false)).observe(document.body);
 		document.fonts?.ready.then(() => place(false));
 		pick();
 	}

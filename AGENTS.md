@@ -220,8 +220,8 @@ category: 세미나
 ### 3. 기존 내용이 그대로인지 확인한다
 
 - 고치기 **전과 후**에 빌드해서 기존 항목 수가 같은지 비교한다. 예:
-  `grep -o 'class="pub"' dist/publications/index.html dist/publications/*/index.html | wc -l` (논문 31),
-  `grep -o 'class="card person"' dist/members/index.html | wc -l` (학생 16),
+  `cat dist/publications/index.html dist/publications/[0-9]*/index.html | grep -o 'class="pub"' | wc -l` (논문 31),
+  `grep -o '<li class="person"' dist/members/index.html | wc -l` (학생 16),
   `grep -o 'class="card project"' dist/projects/index.html | wc -l` (과제 9).
 - 새 형식으로 실제 항목을 하나 넣어 화면에 나오는지, 일부러 틀리게 써서 에러 메시지가 알아듣기 쉬운지 확인한다.
   시험용으로 넣은 내용과 파일은 확인 후 원래대로 돌린다 (`cmp`나 `git diff`로 원상복구 확인).

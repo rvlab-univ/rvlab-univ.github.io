@@ -288,6 +288,8 @@ export function parseProjects(doc: Doc): Entry[] {
 				image: cover?.url,
 				imageAlt: cover?.alt ?? undefined,
 				detections,
+				// 홈 카드용: 개요 첫 문장
+				summary: firstParagraph(rest).split(/(?<=\.)\s/)[0] || undefined,
 			},
 			body: sourceOf(doc, rest),
 		};

@@ -2,6 +2,7 @@
 import { getCollection, render } from 'astro:content';
 import Avatar from '../components/Avatar.astro';
 import PageHeader from '../components/PageHeader.astro';
+import PersonFigure from '../components/PersonFigure.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { getPage } from '../lib/content';
 
@@ -28,7 +29,7 @@ const groups = [...Map.groupBy(students, (m) => m.data.group)].map(([title, peop
 ---
 
 <BaseLayout title={page.data.title} description={page.data.description}>
-	<PageHeader page={page} eyebrow="People" />
+	<PageHeader page={page} />
 
 	{
 		professors.map(({ data, Content }) => (
@@ -36,7 +37,7 @@ const groups = [...Map.groupBy(students, (m) => m.data.group)].map(([title, peop
 				<div class="pi-head">
 					<Avatar name={data.name} width={132} />
 					<div>
-						<p class="role">Principal Investigator</p>
+						<p class="role">{data.group}</p>
 						<h2>
 							{data.name} {data.nameEn && <small>{data.nameEn}</small>}
 						</h2>
@@ -81,12 +82,8 @@ const groups = [...Map.groupBy(students, (m) => m.data.group)].map(([title, peop
 						)}
 						<ul class="people">
 							{team.people.map(({ data }) => (
-								<li class="card person">
-									<Avatar name={data.name} width={66} />
-									<div>
-										<p class="name">{data.name}</p>
-										<p class="research">{data.research.join(' · ')}</p>
-									</div>
+								<li class="person">
+									<PersonFigure name={data.name} research={data.research} />
 								</li>
 							))}
 						</ul>
@@ -112,11 +109,10 @@ const groups = [...Map.groupBy(students, (m) => m.data.group)].map(([title, peop
 		color: var(--text-muted);
 	}
 	.role {
-		margin: 0;
+		margin: 0 0 4px;
 		color: var(--accent);
-		font-size: 0.8rem;
-		font-weight: 700;
-		letter-spacing: 0.06em;
+		font-size: 0.9rem;
+		font-weight: 500;
 	}
 	.pi-head p {
 		margin: 0;
@@ -144,7 +140,6 @@ const groups = [...Map.groupBy(students, (m) => m.data.group)].map(([title, peop
 		margin: 1.5rem 0 0.75rem;
 		color: var(--text-muted);
 		font-size: 0.95rem;
-		letter-spacing: 0.04em;
 	}
 	.cv :global(h4:first-child) {
 		margin-top: 0;
@@ -174,28 +169,11 @@ const groups = [...Map.groupBy(students, (m) => m.data.group)].map(([title, peop
 	}
 	.people {
 		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-		gap: 0.9rem;
-		margin: 0.75rem 0 0;
-		padding: 0;
+		grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+		gap: 28px 16px;
+		margin: 1rem 0 0;
+		padding: 24px 0 0; /* 얼굴 박스 라벨 자리 */
 		list-style: none;
-	}
-	.person {
-		display: flex;
-		gap: 0.9rem;
-		align-items: center;
-		padding: 1rem;
-	}
-	.person p {
-		margin: 0;
-	}
-	.name {
-		font-weight: 700;
-	}
-	.research {
-		color: var(--text-muted);
-		font-size: 0.85rem;
-		line-height: 1.45;
 	}
 	@media (max-width: 720px) {
 		.pi-head {
