@@ -269,6 +269,14 @@ export function parseProjects(doc: Doc): Entry[] {
 		// 그 다음 사진만 있는 줄은 대표 이미지
 		const cover = rest[0] && imageOnly(rest[0]);
 		if (cover) rest.shift();
+		// 그 다음 "탐지:" 줄은 대표 사진 위 구성요소 박스 (선택)
+		let detections: Detection[] = [];
+		if (cover && rest[0]?.type === 'paragraph' && /^탐지\s*:/.test(textOf([rest[0]]))) {
+			detections = parseDetections(doc, rest[0], textOf([rest[0]]));
+			rest.shift();
+		} else if (rest[0]?.type === 'paragraph' && /^탐지\s*:/.test(textOf([rest[0]]))) {
+			fail(doc, rest[0], '"탐지:" 줄은 대표 사진 바로 아래에 적어주세요');
+		}
 		return {
 			id: `project-${no ?? i + 1}`,
 			data: {
@@ -279,9 +287,26 @@ export function parseProjects(doc: Doc): Entry[] {
 				lead: meta.slice(2).some((m) => /project lead/i.test(m)),
 				image: cover?.url,
 				imageAlt: cover?.alt ?? undefined,
+				detections,
 			},
 			body: sourceOf(doc, rest),
 		};
+	});
+}
+
+// 탐지: LiDAR 0.93 (40, 0, 8, 12) · stereo camera (16, 9, 8, 7)
+// 이름 [점수] (왼쪽, 위, 너비, 높이) — 좌표는 사진 기준 %. 점수를 비우면 적힌 순서대로 0.98부터 0.08씩 낮춘다
+type Detection = { name: string; score: number; box: [number, number, number, number] };
+function parseDetections(doc: Doc, node: Doc['root']['children'][number], line: string): Detection[] {
+	const items = line.replace(/^탐지\s*:\s*/, '').split('·').map((t) => t.trim()).filter(Boolean);
+	if (!items.length) fail(doc, node, '"탐지:" 뒤에 구성요소를 적어주세요. 예: 탐지: LiDAR (40, 0, 8, 12)');
+	return items.map((item, i) => {
+		const m = item.match(/^(.+?)(?:\s+(0?\.\d+|1(?:\.0+)?))?\s*\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)\s*\)$/);
+		if (!m) fail(doc, node, `"${item}" — "이름 (왼쪽, 위, 너비, 높이)" 모양으로 적어주세요. 점수는 이름 뒤에 선택: LiDAR 0.93 (40, 0, 8, 12)`);
+		const box = [m[3], m[4], m[5], m[6]].map(Number) as Detection["box"];
+		const [x, y, w, h] = box;
+		if (x + w > 100.5 || y + h > 100.5 || !w || !h) fail(doc, node, `"${item}" — 박스가 사진 밖으로 나갑니다. 좌표는 사진 기준 % (0~100)입니다`);
+		return { name: m[1].trim(), score: m[2] ? Number(m[2]) : Math.max(0.5, 0.98 - i * 0.08), box };
 	});
 }
 

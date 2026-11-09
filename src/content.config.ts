@@ -118,6 +118,9 @@ const projects = defineCollection({
 		lead: z.boolean(),
 		image: z.string().optional(),
 		imageAlt: z.string().optional(),
+		detections: z
+			.array(z.object({ name: z.string(), score: z.number(), box: z.tuple([z.number(), z.number(), z.number(), z.number()]) }))
+			.default([]),
 	}),
 });
 

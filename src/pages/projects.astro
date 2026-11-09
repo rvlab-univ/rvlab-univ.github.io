@@ -11,7 +11,7 @@ const page = await getPage('projects');
 const projects = await Promise.all(
 	(await getCollection('projects'))
 		.sort((a, b) => b.data.no - a.data.no)
-		.map(async (p) => ({ data: p.data, Content: (await render(p)).Content })),
+		.map(async (p) => ({ id: p.id, data: p.data, Content: (await render(p)).Content })),
 );
 ---
 
@@ -20,8 +20,8 @@ const projects = await Promise.all(
 
 	<ol class="projects">
 		{
-			projects.map(({ data, Content }) => (
-				<li class="card project">
+			projects.map(({ id, data, Content }) => (
+				<li class="card project" id={id}>
 					<div class="no" aria-hidden="true">
 						{String(data.no).padStart(2, '0')}
 					</div>

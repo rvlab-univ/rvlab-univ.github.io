@@ -1,0 +1,436 @@
+---
+// 첫 화면: 왼쪽 글(slot) + 오른쪽 과제 대표 사진. 사진 위 박스는 projects.md의 "탐지:" 줄(그 과제의 주요 구성요소).
+// "탐지:" 줄을 적은 과제만 돌아가며 나온다. 하나도 없으면 가장 최근 과제의 대표 사진만 박스 없이 보여준다.
+// 임계선은 0.50에서 오른쪽으로 천천히 움직이며 박스를 걸러내고, 끝에 닿으면 다음 과제로 넘어간다.
+// 번호·‹ ›로 넘길 수 있고, 손을 떼고 2.5초 뒤 다시 움직인다. '동작 줄이기'면 자동 조정 없음.
+import type { ImageMetadata } from 'astro';
+import { Image } from 'astro:assets';
+
+interface Slide {
+	no: number;
+	title: string;
+	href: string;
+	image: ImageMetadata;
+	alt: string;
+	detections: { name: string; score: number; box: [number, number, number, number] }[];
+}
+interface Props {
+	slides: Slide[];
+}
+const { slides } = Astro.props;
+const pad = (n: number) => String(n).padStart(2, '0');
+const hasDetections = slides.some((s) => s.detections.length);
+---
+
+<div class="hero-detect" data-hero>
+	<div class="text">
+		<slot />
+		{
+			hasDetections && (
+				<div class="conf" data-conf hidden>
+					<div class="conf-head det-label">
+						<span>
+							confidence ≥ <b data-thv>0.50</b>
+						</span>
+						<span data-count />
+					</div>
+					<div class="strip">
+						<div class="shade" data-shade />
+						<div class="cut" data-cut />
+						<input type="range" min="0.5" max="0.99" step="0.01" value="0.5" aria-label="탐지 임계값" />
+					</div>
+					<div class="axis det-label">
+						<span>0.50</span>
+						<span>0.75</span>
+						<span>1.00</span>
+					</div>
+				</div>
+			)
+		}
+	</div>
+
+	<figure class="feature">
+		<div class="frame">
+			{
+				slides.map((s, i) => (
+					<div class="slide" data-slide={i} hidden={i > 0} style={`--ar:${s.image.width}/${s.image.height}`}>
+						<div class="inner">
+							<Image
+								src={s.image}
+								alt={s.alt}
+								widths={[640, 960, 1280]}
+								sizes="(max-width: 760px) 100vw, 640px"
+								loading={i === 0 ? 'eager' : 'lazy'}
+							/>
+							{s.detections.map((d) => (
+								<div
+									class="box"
+									data-s={d.score}
+									style={`left:${d.box[0]}%;top:${d.box[1]}%;width:${d.box[2]}%;height:${d.box[3]}%`}
+								>
+									<span class="det-label">
+										{d.name} {d.score.toFixed(2)}
+									</span>
+								</div>
+							))}
+						</div>
+					</div>
+				))
+			}
+		</div>
+		<figcaption>
+			<span class="no det-label" data-no>{pad(slides[0].no)}</span>
+			<a data-title href={slides[0].href}>{slides[0].title}</a>
+			{
+				slides.length > 1 && (
+					<span class="pager" data-pager hidden>
+						<button type="button" data-prev aria-label="이전 과제">
+							‹
+						</button>
+						{slides.map((s, i) => (
+							<button type="button" class="num det-label" data-go={i} aria-label={`${pad(s.no)}번 과제`}>
+								{pad(s.no)}
+							</button>
+						))}
+						<button type="button" data-next aria-label="다음 과제">
+							›
+						</button>
+					</span>
+				)
+			}
+		</figcaption>
+		<script type="application/json" data-meta set:html={JSON.stringify(slides.map((s) => ({ no: pad(s.no), title: s.title, href: s.href })))} />
+	</figure>
+</div>
+
+<script>
+	const SWEEP = 7000; // 임계선이 0.50→0.99를 지나는 시간
+	const HOLD = 1600; // 끝에 닿은 뒤 다음 과제로 넘어가기 전 멈춤
+	const RESUME = 2500; // 손을 뗀 뒤 다시 움직이기까지
+	const LO = 0.5,
+		HI = 0.99;
+
+	for (const root of document.querySelectorAll<HTMLElement>('[data-hero]')) {
+		const $ = <T extends Element>(s: string) => root.querySelector<T>(s)!;
+		const slides = [...root.querySelectorAll<HTMLElement>('[data-slide]')];
+		const meta: { no: string; title: string; href: string }[] = JSON.parse($('[data-meta]').textContent!);
+		const conf = root.querySelector<HTMLElement>('[data-conf]');
+		const pager = root.querySelector<HTMLElement>('[data-pager]');
+		const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+		let cur = 0,
+			val = LO,
+			paused = reduce,
+			holdUntil = 0,
+			last = 0,
+			resume = 0;
+
+		const strip = conf && $('.strip'),
+			input = conf && $<HTMLInputElement>('input');
+		const pct = (v: number) => ((v - LO) / (1 - LO)) * 100;
+
+		function bars() {
+			if (!strip) return;
+			strip.querySelectorAll('.bar').forEach((b) => b.remove());
+			for (const b of slides[cur].querySelectorAll<HTMLElement>('.box')) {
+				const s = Number(b.dataset.s);
+				const bar = document.createElement('i');
+				bar.className = 'bar';
+				bar.dataset.s = String(s);
+				bar.style.left = pct(s) + '%';
+				bar.style.height = 30 + s * 60 + '%';
+				strip.prepend(bar);
+			}
+		}
+		function apply() {
+			if (!conf) return;
+			const p = pct(val) + '%';
+			$<HTMLElement>('[data-cut]').style.left = p;
+			$<HTMLElement>('[data-shade]').style.width = p;
+			$('[data-thv]').textContent = val.toFixed(2);
+			const boxes = [...slides[cur].querySelectorAll<HTMLElement>('.box')];
+			let on = 0;
+			for (const b of boxes) {
+				const ok = Number(b.dataset.s) >= val;
+				b.classList.toggle('off', !ok);
+				on += Number(ok);
+			}
+			strip!.querySelectorAll<HTMLElement>('.bar').forEach((b) => b.classList.toggle('on', Number(b.dataset.s) >= val));
+			$('[data-count]').textContent = `${on} / ${boxes.length} detected`;
+		}
+		function show(i: number) {
+			cur = (i + slides.length) % slides.length;
+			slides.forEach((s, k) => (s.hidden = k !== cur));
+			$('[data-no]').textContent = meta[cur].no;
+			const a = $<HTMLAnchorElement>('[data-title]');
+			a.textContent = meta[cur].title;
+			a.href = meta[cur].href;
+			root.querySelectorAll('[data-go]').forEach((b, k) => b.setAttribute('aria-current', String(k === cur)));
+			bars();
+			apply();
+		}
+		const touch = () => {
+			paused = true;
+			clearTimeout(resume);
+			resume = window.setTimeout(() => (paused = reduce), RESUME);
+		};
+		const go = (i: number) => {
+			val = LO;
+			if (input) input.value = String(LO);
+			holdUntil = 0;
+			show(i);
+			touch();
+		};
+
+		if (conf && input) {
+			conf.hidden = false;
+			input.addEventListener('input', () => {
+				val = Number(input.value);
+				touch();
+				apply();
+			});
+			for (const e of ['pointerdown', 'focus', 'keydown']) input.addEventListener(e, touch);
+		}
+		if (pager) {
+			pager.hidden = false;
+			pager.addEventListener('click', (e) => {
+				const b = (e.target as Element).closest('button');
+				if (!b) return;
+				if (b.matches('[data-prev]')) go(cur - 1);
+				else if (b.matches('[data-next]')) go(cur + 1);
+				else go(Number((b as HTMLElement).dataset.go));
+			});
+		}
+		const frame = $<HTMLElement>('.frame');
+		frame.addEventListener('pointerenter', () => (paused = true));
+		frame.addEventListener('pointerleave', touch);
+
+		function tick(t: number) {
+			const dt = last ? t - last : 0;
+			last = t;
+			if (conf && !paused && t > holdUntil && !document.hidden) {
+				val = Math.min(HI, val + ((HI - LO) * dt) / SWEEP);
+				if (input) input.value = String(val);
+				apply();
+				if (val >= HI) {
+					holdUntil = t + HOLD + 400; // 넘기는 동안(0.25초) 다시 걸리지 않게
+					window.setTimeout(() => {
+						if (paused || slides.length < 2) {
+							if (!paused) val = LO;
+							return;
+						}
+						frame.classList.add('swap');
+						window.setTimeout(() => {
+							val = LO;
+							show(cur + 1);
+							frame.classList.remove('swap');
+						}, 250);
+					}, HOLD);
+				}
+			}
+			requestAnimationFrame(tick);
+		}
+		show(0);
+		if (conf) requestAnimationFrame(tick);
+	}
+</script>
+
+<style>
+	.hero-detect {
+		display: grid;
+		grid-template-columns: 5fr 7fr;
+		gap: 48px;
+		align-items: end;
+	}
+	.feature {
+		margin: 0;
+	}
+	/* 높이는 늘 4:3. 사진은 원래 비율 그대로 가운데 두고, 박스 층은 사진과 정확히 같은 크기 */
+	.frame {
+		aspect-ratio: 4 / 3;
+		background: var(--card);
+		container-type: size;
+		transition: opacity 0.25s;
+	}
+	.frame:global(.swap) {
+		opacity: 0;
+	}
+	.slide {
+		display: grid;
+		place-items: center;
+		width: 100%;
+		height: 100%;
+	}
+	.slide[hidden] {
+		display: none;
+	}
+	.inner {
+		position: relative;
+		width: min(100cqw, calc(100cqh * var(--ar)));
+		aspect-ratio: var(--ar);
+	}
+	.inner :global(img) {
+		display: block;
+		width: 100%;
+		height: 100%;
+		border-radius: 0;
+	}
+	.box {
+		position: absolute;
+		border: 1.5px solid var(--detect);
+		pointer-events: none;
+		transition:
+			opacity 0.25s,
+			transform 0.25s;
+	}
+	.box:global(.off) {
+		opacity: 0;
+		transform: scale(0.96);
+	}
+	.box span {
+		position: absolute;
+		left: -1.5px;
+		bottom: 100%;
+		padding: 4px 6px;
+		background: var(--detect);
+		color: #fff;
+		white-space: nowrap;
+	}
+
+	figcaption {
+		display: grid;
+		grid-template-columns: auto 1fr auto;
+		gap: 12px;
+		align-items: start;
+		margin-top: 12px;
+		font-size: 15px;
+	}
+	.no {
+		color: var(--accent);
+		padding-top: 3px;
+	}
+	/* 제목 길이가 달라도 높이가 그대로이게: 두 줄 자리를 늘 차지하고, 넘치면 말줄임 */
+	figcaption a {
+		min-height: 2.9em;
+		color: var(--text);
+		font-weight: 500;
+		line-height: 1.45;
+		text-decoration: none;
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+	}
+	figcaption a:hover {
+		text-decoration: underline;
+	}
+	.pager {
+		display: flex;
+		align-items: center;
+		gap: 2px;
+		margin-top: -6px;
+	}
+	.pager button {
+		padding: 8px 6px;
+		border: 0;
+		background: none;
+		color: var(--text-muted);
+		font-size: 13px;
+		line-height: 1;
+		cursor: pointer;
+	}
+	.pager button:hover,
+	.pager button[aria-current='true'] {
+		color: var(--text);
+	}
+	.pager .num[aria-current='true'] {
+		box-shadow: inset 0 -2px var(--focus);
+	}
+
+	.conf {
+		max-width: 360px;
+		margin-top: 36px;
+	}
+	.conf-head {
+		display: flex;
+		justify-content: space-between;
+		margin-bottom: 8px;
+		color: var(--text-muted);
+	}
+	.conf-head b,
+	.conf-head span:last-child {
+		color: var(--text);
+		font-weight: 500;
+	}
+	.conf-head b {
+		color: var(--focus);
+	}
+	.strip {
+		position: relative;
+		height: 56px;
+		border: 1px solid var(--border);
+		background: var(--card);
+	}
+	.strip:has(input:focus-visible) {
+		outline: 2px solid var(--focus);
+		outline-offset: 3px;
+	}
+	.strip :global(.bar) {
+		position: absolute;
+		bottom: 0;
+		width: 10px;
+		margin-left: -5px;
+		background: var(--border);
+		transition: background 0.2s;
+	}
+	.strip :global(.bar.on) {
+		background: var(--detect);
+	}
+	.cut {
+		position: absolute;
+		top: -6px;
+		bottom: -6px;
+		width: 2px;
+		background: var(--focus);
+		pointer-events: none;
+	}
+	.shade {
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		left: 0;
+		background: repeating-linear-gradient(135deg, transparent 0 5px, rgb(127 127 127 / 0.12) 5px 7px);
+		pointer-events: none;
+	}
+	.strip input {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		margin: 0;
+		opacity: 0;
+		cursor: ew-resize;
+	}
+	.axis {
+		display: flex;
+		justify-content: space-between;
+		margin-top: 4px;
+		color: var(--text-muted);
+		font-size: 11px;
+	}
+
+	@media (max-width: 760px) {
+		.hero-detect {
+			grid-template-columns: 1fr;
+			gap: 28px;
+		}
+		.feature {
+			order: -1;
+		}
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.box,
+		.frame {
+			transition: none;
+		}
+	}
+</style>

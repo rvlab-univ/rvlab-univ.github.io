@@ -60,6 +60,8 @@ Daedong Co., Ltd. · 06.2022 – Present
 
 ![Autonomous driving golf cart](attachments/projects/project-07-cover.jpg)
 
+탐지: golf cart (5, 24, 88, 64) · LiDAR (40, 10, 8, 10)
+
 The goal of the project is to modify golf carts for autonomous driving to replace the manpower. The golf carts are equipped with stereo cameras, LiDAR, RTK-GPS, and 4D radar sensor.
 
 ### Personal Research Activities
@@ -134,6 +136,8 @@ https://youtu.be/ghUfv3r2VCs
 Korea Hydro and Nuclear Power · 03.2022 – 12.2022
 
 ![Pipe inspection quadruped robot](attachments/projects/project-05-cover.jpg)
+
+탐지: quadruped walking robot (1, 22, 90, 58)
 
 The visual inspection of seawater pipelines used for discharging waste heat from power plants is essential. The goal of the project is to develop a quadruped walking robot for inspecting underwater pipelines.
 

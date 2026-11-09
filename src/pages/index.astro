@@ -1,10 +1,12 @@
 ---
 import { getCollection, render } from 'astro:content';
+import HeroDetect from '../components/HeroDetect.astro';
 import NewsCard from '../components/NewsCard.astro';
 import PublicationItem from '../components/PublicationItem.astro';
 import VideoThumb from '../components/VideoThumb.astro';
 import { LAB } from '../consts';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { attachment } from '../lib/attachments';
 import { getPage, getResearchAreas, getSortedPublications } from '../lib/content';
 
 // 내용 수정: src/content/home.md (소개 문구 + 아래쪽 ## 절들), src/content/research.md
@@ -22,49 +24,41 @@ const news = (await getCollection('news'))
 	.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
 	.slice(0, 3);
 const pubs = await getSortedPublications();
+// 첫 화면: projects.md에 "탐지:" 줄을 적은 과제의 대표 사진 (최신 순). 하나도 없으면 가장 최근 과제 사진 하나
+const withCover = (await getCollection('projects'))
+	.sort((a, b) => b.data.no - a.data.no)
+	.flatMap((p) => {
+		const image = attachment(p.data.image);
+		return image
+			? [{ no: p.data.no, title: p.data.title, href: `/projects#${p.id}`, image, alt: p.data.imageAlt ?? p.data.title, detections: p.data.detections }]
+			: [];
+	});
+const detected = withCover.filter((s) => s.detections.length);
+const slides = detected.length ? detected : withCover.slice(0, 1);
 const highlights = areas.flatMap((a) => a.data.topics.map((t) => ({ ...t, pillar: a.data.titleEn })));
 ---
 
 <BaseLayout description={home.data.description}>
-	<Fragment slot="head">
-		<!-- 등장 애니메이션 전에 hero 내용이 잠깐 보였다 사라지지 않게 숨겨 둔다 (JS가 꺼져 있으면 그대로 보임).
-		     아래 GSAP 스크립트가 실행되지 않더라도 3초 뒤에는 보이게 한다 -->
-		<script is:inline>
-			if (matchMedia('(prefers-reduced-motion: no-preference)').matches) {
-				document.documentElement.classList.add('hero-pending');
-				setTimeout(() => document.documentElement.classList.remove('hero-pending'), 3000);
-			}
-		</script>
-	</Fragment>
-
 	<section slot="hero" class="hero">
-		<div class="hero-inner">
-			<p class="eyebrow">{LAB.university}</p>
-			<h1>{LAB.name}<span>{LAB.fullName}</span></h1>
+		<HeroDetect slides={slides}>
+			<h1>{LAB.fullName}</h1>
 			<div class="lead">
 				<Lead />
 			</div>
-			<div class="cta">
-				<a class="btn primary" href="/research">연구 분야 보기</a>
-				<a class="btn" href="/publications">논문 목록</a>
-				<a class="btn" href={LAB.youtube} target="_blank" rel="noopener">▶ YouTube</a>
-			</div>
-		</div>
+			<a class="btn primary" href="/research">연구 분야 보기</a>
+		</HeroDetect>
 	</section>
 
 	<section class="areas">
 		<div class="section-head">
 			<h2>연구 분야</h2>
-			<a href="/research">자세히 →</a>
+			<a href="/research">자세히</a>
 		</div>
 		<ul class="pillars">
 			{
 				areas.map((a) => (
 					<li>
 						<a class="card pillar" href={`/research#${a.id}`}>
-							<span class="icon" aria-hidden="true">
-								{a.data.icon}
-							</span>
 							<p class="en">{a.data.titleEn}</p>
 							<h3>{a.data.title}</h3>
 							<p class="muted">{a.data.summary}</p>
@@ -78,7 +72,7 @@ const highlights = areas.flatMap((a) => a.data.topics.map((t) => ({ ...t, pillar
 	<section>
 		<div class="section-head">
 			<h2>연구 하이라이트</h2>
-			<a href={LAB.youtube} target="_blank" rel="noopener">유튜브 채널 →</a>
+			<a href={LAB.youtube} target="_blank" rel="noopener">유튜브 채널</a>
 		</div>
 		<ul class="highlights">
 			{
@@ -97,7 +91,7 @@ const highlights = areas.flatMap((a) => a.data.topics.map((t) => ({ ...t, pillar
 	<section>
 		<div class="section-head">
 			<h2>NEWS</h2>
-			<a href="/news">전체 보기 →</a>
+			<a href="/news">전체 보기</a>
 		</div>
 		<ul class="news">
 			{
@@ -113,7 +107,7 @@ const highlights = areas.flatMap((a) => a.data.topics.map((t) => ({ ...t, pillar
 	<section>
 		<div class="section-head">
 			<h2>최근 논문</h2>
-			<a href="/publications">전체 보기 →</a>
+			<a href="/publications">전체 보기</a>
 		</div>
 		<ul class="pubs">
 			{pubs.slice(0, 3).map((pub) => <PublicationItem pub={pub} />)}
@@ -134,114 +128,38 @@ const highlights = areas.flatMap((a) => a.data.topics.map((t) => ({ ...t, pillar
 	}
 </BaseLayout>
 
-<script>
-	import { gsap } from 'gsap';
-	import { ScrollTrigger } from 'gsap/ScrollTrigger';
-
-	gsap.registerPlugin(ScrollTrigger);
-
-	// 시스템에서 '동작 줄이기'를 켠 사용자에게는 애니메이션 없이 보여준다
-	gsap.matchMedia().add('(prefers-reduced-motion: no-preference)', () => {
-		// 등장: 학교명 → 제목 → 소개 문구 → 버튼 순서로 떠오른다
-		gsap.from('.hero-inner > *', { y: 24, autoAlpha: 0, duration: 0.8, stagger: 0.1, ease: 'power3.out' });
-		document.documentElement.classList.remove('hero-pending');
-
-		// 스크롤: hero 는 제자리에 멈춘 채 작아지며 뒤로 사라지고, 연구 분야부터 시작하는 본문이 그 위를 덮으며 올라온다.
-		// hero 가 한 화면에 다 들어올 때만 고정한다 (아니면 아래쪽 버튼을 볼 수 없게 된다)
-		const hero = document.querySelector<HTMLElement>('.hero')!;
-		if (hero.offsetTop + hero.offsetHeight > window.innerHeight) return;
-		gsap
-			.timeline({
-				defaults: { ease: 'none' },
-				scrollTrigger: {
-					trigger: hero,
-					start: 0,
-					end: () => `+=${hero.offsetHeight}`,
-					scrub: true,
-					pin: true,
-					pinSpacing: false,
-				},
-			})
-			.to('.hero-inner', { scale: 0.9, opacity: 0 })
-			.from('.areas', { y: 40 }, 0);
-	});
-</script>
-
 <style>
-	:global(.hero-pending) .hero-inner > * {
-		visibility: hidden;
-	}
-	/* 스크롤하면 본문이 hero 위를 덮으며 올라온다: 본문 배경을 화면 양옆까지 채운다 (가로 스크롤은 생기지 않음) */
-	:global(main) {
-		position: relative;
-		z-index: 1;
-		background: var(--bg);
-		box-shadow: 0 0 0 100vmax var(--bg);
-		clip-path: inset(0 -100vmax);
-	}
 	.hero {
-		padding: 5rem 1rem 4rem;
-		background:
-			radial-gradient(circle at 85% 10%, var(--accent-soft), transparent 55%),
-			linear-gradient(var(--bg-alt), var(--bg));
-		border-bottom: 1px solid var(--border);
-	}
-	.hero-inner {
 		max-width: var(--max-width);
 		margin: 0 auto;
-	}
-	.eyebrow {
-		margin: 0 0 0.5rem;
-		color: var(--accent);
-		font-weight: 700;
-		letter-spacing: 0.04em;
-		font-size: 0.95rem;
+		padding: 56px 1rem 96px; /* main 과 같은 좌우 여백 */
 	}
 	.hero h1 {
-		font-size: clamp(2.6rem, 7vw, 4.2rem);
-		letter-spacing: -0.03em;
-	}
-	.hero h1 span {
-		display: block;
-		color: var(--text-muted);
-		font-size: 0.42em;
-		font-weight: 500;
-		letter-spacing: 0;
+		margin: 0 0 20px;
+		font-size: clamp(2.75rem, 6vw, 5.25rem);
+		line-height: 1.05;
+		letter-spacing: -0.02em;
 	}
 	.lead {
-		max-width: 36em;
-		font-size: 1.15rem;
+		max-width: 30em;
+		margin-bottom: 28px;
+		color: var(--text-muted);
 	}
 	.lead :global(p) {
 		margin: 0;
 	}
-	.cta {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.75rem;
-		margin-top: 1.75rem;
+	.lead :global(strong) {
+		color: var(--text);
 	}
 	.btn {
-		display: inline-flex;
-		align-items: center;
-		padding: 0.7rem 1.3rem;
-		border: 1px solid var(--border);
-		border-radius: 10px;
-		background: var(--card);
-		color: var(--text);
-		font-weight: 700;
+		display: inline-block;
+		padding: 12px 20px;
+		background: var(--ink);
+		color: var(--paper);
+		font-weight: 500;
 		text-decoration: none;
 	}
 	.btn:hover {
-		border-color: var(--accent);
-		color: var(--accent);
-	}
-	.btn.primary {
-		border-color: var(--accent);
-		background: var(--accent);
-		color: #fff;
-	}
-	.btn.primary:hover {
 		background: var(--accent-dark);
 		color: #fff;
 	}
@@ -297,7 +215,6 @@ const highlights = areas.flatMap((a) => a.data.topics.map((t) => ({ ...t, pillar
 		font-size: 0.78rem;
 		font-weight: 700;
 		letter-spacing: 0.05em;
-		text-transform: uppercase;
 	}
 	.pillar p:last-child {
 		margin: 0;
@@ -379,9 +296,9 @@ const highlights = areas.flatMap((a) => a.data.topics.map((t) => ({ ...t, pillar
 		object-fit: contain;
 		border-radius: 0;
 	}
-	@media (max-width: 720px) {
+	@media (max-width: 760px) {
 		.hero {
-			padding: 3rem 1rem 2.5rem;
+			padding: 24px 16px 56px;
 		}
 	}
 </style>
