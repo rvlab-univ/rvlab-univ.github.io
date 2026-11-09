@@ -29,14 +29,16 @@
 		const range = document.createRange();
 		range.selectNodeContents(active);
 		const rects = [...range.getClientRects()];
+		// 가로는 글자 영역, 세로는 제목 블록 (글자 영역은 큰 제목에서 줄 높이보다 커져 아래 문단에 걸린다)
+		const block = active.getBoundingClientRect();
 		const r = rects.length
 			? {
 					left: Math.min(...rects.map((x) => x.left)),
-					top: Math.min(...rects.map((x) => x.top)),
+					top: block.top,
 					right: Math.max(...rects.map((x) => x.right)),
-					bottom: Math.max(...rects.map((x) => x.bottom)),
+					bottom: block.bottom,
 				}
-			: active.getBoundingClientRect();
+			: block;
 		box.classList.toggle('move', animate && !reduce);
 		Object.assign(box.style, {
 			left: `${r.left + scrollX - PAD}px`,
@@ -66,8 +68,11 @@
 	if (heads.length) {
 		addEventListener('scroll', () => requestAnimationFrame(pick), { passive: true });
 		// 사진·서체가 늦게 불려 와 페이지 높이가 바뀌면 박스가 제자리에 남는다. 높이가 바뀔 때마다 다시 맞춘다
-		new ResizeObserver(() => place(false)).observe(document.body);
-		document.fonts?.ready.then(() => place(false));
+		const ro = new ResizeObserver(() => place(false));
+		ro.observe(document.body);
+		heads.forEach((h) => ro.observe(h)); // 서체가 바뀌어 제목 크기가 달라질 때
+		document.fonts?.addEventListener('loadingdone', () => place(false));
+		addEventListener('load', () => place(false));
 		pick();
 	}
 </script>

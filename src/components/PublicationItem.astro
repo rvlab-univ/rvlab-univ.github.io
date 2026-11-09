@@ -77,19 +77,13 @@ const parts = authors.split(new RegExp(`(${escaped.join('|')})`, 'g'));
 		text-align: center;
 	}
 	.type.intl-journal {
-		background: #e7f6ec;
+		background: var(--accent-soft);
 		color: var(--accent);
 	}
 	.type.domestic-journal,
 	.type.domestic-conference {
 		background: var(--bg-alt);
 		color: var(--text-muted);
-	}
-	@media (prefers-color-scheme: dark) {
-		.type.intl-journal {
-			background: #143322;
-			color: var(--accent);
-		}
 	}
 	.title {
 		font-weight: 700;
