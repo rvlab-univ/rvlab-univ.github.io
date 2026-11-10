@@ -119,13 +119,17 @@ export function parseResearch(doc: Doc): Entry[] {
 				keywords,
 				summary: textOf(summary),
 				topics: topics.map((t) => {
-					const quote = t.nodes.find((n) => n.type === 'blockquote');
+					const { image, imageAlt, detections, rest } = takeCover(doc, t.nodes);
+					const quote = rest.find((n) => n.type === 'blockquote');
 					const paper = quote ? textOf([quote]) : '';
 					const status = paper.match(/^(.+?)\s*·\s*/);
 					return {
 						title: t.title,
-						video: t.nodes.map(youtubeId).find(Boolean),
-						summary: textOf(t.nodes.filter((n) => n.type === 'paragraph' && !youtubeId(n))),
+						video: rest.map(youtubeId).find(Boolean),
+						summary: textOf(rest.filter((n) => n.type === 'paragraph' && !youtubeId(n))),
+						image,
+						imageAlt,
+						detections,
 						status: status?.[1],
 						paper: status ? paper.slice(status[0].length) : paper,
 					};
@@ -259,24 +263,26 @@ export function parsePublications(doc: Doc): Entry[] {
 	return entries;
 }
 
+// 맨 앞의 사진만 있는 줄 = 대표 사진, 바로 다음 "탐지:" 줄 = 그 사진 위 구성요소 박스 (둘 다 선택)
+// nodes에서 둘을 떼어 내고 나머지를 돌려준다
+function takeCover(doc: Doc, nodes: Doc['root']['children']) {
+	const rest = [...nodes];
+	const cover = rest[0] && imageOnly(rest[0]);
+	if (cover) rest.shift();
+	const isDetect = rest[0]?.type === 'paragraph' && /^탐지\s*:/.test(textOf([rest[0]]));
+	if (isDetect && !cover) fail(doc, rest[0], '"탐지:" 줄은 대표 사진 바로 아래에 적어주세요');
+	const detections = isDetect ? parseDetections(doc, rest[0], textOf([rest.shift()!])) : [];
+	return { image: cover?.url, imageAlt: cover?.alt ?? undefined, detections, rest };
+}
+
 // 연구 과제: ## 번호. 제목 / 첫 줄: 지원 기관 · 기간 (· Project Lead) / 나머지는 본문
 export function parseProjects(doc: Doc): Entry[] {
 	return splitSections(titled(doc).nodes, 2).sections.map((s, i) => {
 		const [, no, title] = s.title.match(/^(?:(\d+)\.\s*)?(.*)$/)!;
-		const [metaNode, ...rest] = s.nodes;
+		const [metaNode, ...afterMeta] = s.nodes;
 		const meta = metaNode?.type === 'paragraph' ? textOf([metaNode]).split('·').map((m) => m.trim()) : [];
 		if (meta.length < 2) fail(doc, s.heading, '제목 다음 줄에 "지원 기관 · 기간"을 적어주세요');
-		// 그 다음 사진만 있는 줄은 대표 이미지
-		const cover = rest[0] && imageOnly(rest[0]);
-		if (cover) rest.shift();
-		// 그 다음 "탐지:" 줄은 대표 사진 위 구성요소 박스 (선택)
-		let detections: Detection[] = [];
-		if (cover && rest[0]?.type === 'paragraph' && /^탐지\s*:/.test(textOf([rest[0]]))) {
-			detections = parseDetections(doc, rest[0], textOf([rest[0]]));
-			rest.shift();
-		} else if (rest[0]?.type === 'paragraph' && /^탐지\s*:/.test(textOf([rest[0]]))) {
-			fail(doc, rest[0], '"탐지:" 줄은 대표 사진 바로 아래에 적어주세요');
-		}
+		const { image, imageAlt, detections, rest } = takeCover(doc, afterMeta);
 		return {
 			id: `project-${no ?? i + 1}`,
 			data: {
@@ -285,8 +291,8 @@ export function parseProjects(doc: Doc): Entry[] {
 				funder: meta[0],
 				period: meta[1],
 				lead: meta.slice(2).some((m) => /project lead/i.test(m)),
-				image: cover?.url,
-				imageAlt: cover?.alt ?? undefined,
+				image,
+				imageAlt,
 				detections,
 				// 홈 카드용: 개요 첫 문장
 				summary: firstParagraph(rest).split(/(?<=\.)\s/)[0] || undefined,

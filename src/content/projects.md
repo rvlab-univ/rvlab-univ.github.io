@@ -16,8 +16,6 @@ Electronics and Telecommunications Research Institute · 05.2024 – 12.2024
 
 ![Outdoor 3D LiDAR SLAM map](attachments/projects/project-09-cover.jpg)
 
-탐지: road (28, 14, 39, 86) · LiDAR (44, 36, 13, 17) · curb (23, 29, 10, 38) · trajectory (48, 44, 4, 56) · building (72, 40, 16, 30)
-
 The goal of the project is to develop 3D LiDAR-IMU-GPS SLAM. Robustness is increased by precise 3D LiDAR odometry and Factor Graph Optimization with IMU and RTK-GPS in the shadow area of RTK-GPS.
 
 ### Personal Research Activities
@@ -137,8 +135,6 @@ Korea Hydro and Nuclear Power · 03.2022 – 12.2022
 
 ![Pipe inspection quadruped robot](attachments/projects/project-05-cover.jpg)
 
-탐지: quadruped walking robot (1, 26, 91, 68) · arm (52, 3, 39, 25) · camera (73, 4, 18, 23) · leg (50, 41, 14, 53) · track module (9, 50, 29, 17) · tank (68, 0, 32, 55)
-
 The visual inspection of seawater pipelines used for discharging waste heat from power plants is essential. The goal of the project is to develop a quadruped walking robot for inspecting underwater pipelines.
 
 ### Personal Research Activities
@@ -197,8 +193,6 @@ Korea Institute of Civil Engineering and Building Technology · 03.2020 – 12.2
 
 ![Rover visual SLAM platform](attachments/projects/project-03-cover.jpg)
 
-탐지: camera (19, 2, 29, 28) · laptop (27, 45, 51, 53) · wheel (12, 72, 14, 25) · shield (29, 14, 52, 47) · rocks (88, 47, 11, 9)
-
 Research on 3D printing architecture on the moon has been extensively conducted recently. The goal of the project is to develop visual SLAM for planetary mapping the surrounding terrain of rover in lunar environments.
 
 ### Personal Research Activities
@@ -233,8 +227,6 @@ https://youtu.be/8k9GltwAl0c
 Institute of Civil-Military Technology Cooperation · 06.2019 – 12.2022
 
 ![Runway snow plow SE-88](attachments/projects/project-02-cover.jpg)
-
-탐지: snow plow (6, 31, 92, 38) · cab (30, 31, 21, 16) · blower (48, 44, 19, 25) · tank (20, 43, 12, 15) · runway (0, 70, 100, 30) · trees (61, 15, 39, 44)
 
 The goal of the project is to modify snow plow (SE-88) for autonomous driving.
 

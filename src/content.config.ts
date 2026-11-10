@@ -38,6 +38,11 @@ const home = defineCollection({
 	}),
 });
 
+// 대표 사진 위 탐지 박스 (projects.md, research.md의 "탐지:" 줄)
+const detections = z
+	.array(z.object({ name: z.string(), score: z.number(), box: z.tuple([z.number(), z.number(), z.number(), z.number()]) }))
+	.default([]);
+
 const research = defineCollection({
 	loader: markdownLoader({ name: 'research', files: [`${dir}/research.md`], parse: parseResearch }),
 	schema: z.object({
@@ -57,6 +62,9 @@ const research = defineCollection({
 					paper: z.string(),
 					video: z.string().optional(),
 					status: z.string().optional(),
+					image: z.string().optional(),
+					imageAlt: z.string().optional(),
+					detections,
 				}),
 			)
 			.default([]),
@@ -119,9 +127,7 @@ const projects = defineCollection({
 		image: z.string().optional(),
 		imageAlt: z.string().optional(),
 		summary: z.string().optional(),
-		detections: z
-			.array(z.object({ name: z.string(), score: z.number(), box: z.tuple([z.number(), z.number(), z.number(), z.number()]) }))
-			.default([]),
+		detections,
 	}),
 });
 

@@ -6,6 +6,8 @@ RV LAB은 경기대학교 전자공학부에서 자율주행과 휴머노이드 
 ## 아이콘 분야 이름 (English Name) 하나가 연구 분야 하나입니다.
   유튜브 링크만 있는 줄 = 대표 영상, "키워드:" 줄 = 태그, 나머지 문단 = 소개
 ### 는 대표 연구:  유튜브 링크 줄 = 영상, > 인용 줄 = 논문 (앞에 "Under Review ·" 를 붙이면 심사 중 표시)
+  ### 바로 아래 사진만 있는 줄 = 대표 사진(선택). 그 바로 아래 "탐지:" 줄을 쓰면 첫 화면에 박스와 함께 돌아가며 나옵니다.
+  탐지: 이름 (왼쪽, 위, 너비, 높이) · 이름 (…)   좌표는 사진 기준 %. 중요한 것부터 적으면 점수가 0.98→0.55로 매겨집니다.
 "Research Statement:" 로 시작하는 ## 절은 페이지 맨 아래 카드로 나옵니다.
   YouTube 주소만 있는 줄은 영상이 되고, 빈 줄 없이 이어 쓰면 나란히 배치됩니다. [제목](주소) 형식이면 제목이 붙습니다.
 -->
@@ -20,6 +22,10 @@ IsaacSim 디지털 트윈 시뮬레이터를 기반으로 Vision Language Action
 
 ### Biped Walking
 
+![PHAER 이족 보행 로봇 실험 장면](attachments/research/biped-walking.jpg)
+
+탐지: biped robot (20, 14, 31, 78) · leg (28, 57, 18, 35) · hip actuator (37, 22, 12, 16) · foot (29, 85, 9, 7) · monitor (59, 7, 41, 22)
+
 https://youtu.be/RgJKCju_IRQ
 
 공압 하이브리드 구동 기반의 저구속 이족 보행 로봇 PHAER
@@ -27,6 +33,10 @@ https://youtu.be/RgJKCju_IRQ
 > Under Review · Donghyun Kim, Yun-Pyo Hong, Hyung-Tae Seo, Minseong Choi† and Kyung-Soo Kim†. "PHAER: Pneumatic Hybrid Actuated Efficient Robot With Under-Constrained Biped Walking", IEEE Transactions on Mechatronics, 2026.
 
 ### Physical AI
+
+![IsaacSim 주방 환경에서 컵을 잡는 휴머노이드 손](attachments/research/physical-ai.jpg)
+
+탐지: robot hand (55, 69, 11, 31) · cup (57, 62, 5, 11) · robot hand (26, 66, 15, 34) · table (38, 27, 49, 73) · chair (77, 48, 23, 37) · washer (84, 16, 16, 31)
 
 https://youtu.be/mruXADdMVBY
 
@@ -52,6 +62,10 @@ Simultaneous Localization And Mapping(SLAM), Road Marking Segmentation, Camera-4
 
 ### Vector Map SLAM
 
+![동적 객체 제거 마스크와 특징점이 표시된 주행 영상](attachments/research/vector-map-slam.jpg)
+
+탐지: dynamic objects (35, 35, 36, 15) · car (0, 33, 22, 52) · lane marking (16, 70, 18, 28) · building (40, 14, 6, 17) · tree (86, 1, 14, 47)
+
 https://youtu.be/MEGpB7BKaMY
 
 동적 객체 제거 마스크와 2단계 루프 검출을 이용한 4D Radar-Camera 벡터맵 SLAM
@@ -59,6 +73,10 @@ https://youtu.be/MEGpB7BKaMY
 > Minseong Choi et al. "4D Radar-Camera Based Vector Map SLAM Using Dynamic Object Removal Mask with Two-Stage Loop Detection", IEEE Transactions on Instrumentation and Measurement, 2026.
 
 ### Semantic Segmentation
+
+![노면 표시 분할 결과가 겹쳐진 도로 영상](attachments/research/semantic-segmentation.jpg)
+
+탐지: number (39, 62, 15, 8) · crosswalk (41, 48, 18, 10) · arrow (71, 70, 28, 25) · lane (6, 61, 33, 39) · ego vehicle (23, 86, 58, 14)
 
 https://youtu.be/ytoQFS1PsT8
 

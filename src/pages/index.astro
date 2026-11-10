@@ -31,14 +31,16 @@ const pubs = await getSortedPublications();
 const projects = (await getCollection('projects'))
 	.sort((a, b) => b.data.no - a.data.no)
 	.map((p) => ({ id: p.id, ...p.data, cover: attachment(p.data.image) }));
-// 첫 화면: "탐지:" 줄을 적은 과제의 대표 사진. 하나도 없으면 가장 최근 과제 사진 하나
-const withCover = projects.flatMap((p) =>
-	p.cover
-		? [{ no: p.no, title: p.title, href: `/projects#${p.id}`, image: p.cover, alt: p.imageAlt ?? p.title, detections: p.detections }]
-		: [],
-);
-const detected = withCover.filter((s) => s.detections.length);
-const slides = detected.length ? detected : withCover.slice(0, 1);
+// 첫 화면: 대표 사진 아래 "탐지:" 줄을 적은 연구 주제(research.md)와 과제(projects.md), 문서 순서대로.
+// 하나도 없으면 대표 사진 하나만 박스 없이
+const candidates = [
+	...areas.flatMap((a) =>
+		a.data.topics.map((t) => ({ title: t.title, href: `/research#${a.id}`, image: attachment(t.image), alt: t.imageAlt, detections: t.detections })),
+	),
+	...projects.map((p) => ({ title: p.title, href: `/projects#${p.id}`, image: p.cover, alt: p.imageAlt, detections: p.detections })),
+].flatMap((c) => (c.image ? [{ ...c, image: c.image, alt: c.alt ?? c.title }] : []));
+const detected = candidates.filter((c) => c.detections.length);
+const slides = (detected.length ? detected : candidates.slice(0, 1)).map((c, i) => ({ ...c, no: i + 1 }));
 const HOME_PROJECTS = 3;
 
 // 구성원 (members.md): 지도교수·졸업생을 뺀 학생, 문서 순서. 팀 버튼은 팀이 둘 이상일 때만
@@ -85,7 +87,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
 		highlights.length > 0 && (
 			<section>
 				<div class="section-head">
-					<h2>연구 하이라이트</h2>
+					<h2>프로젝트</h2>
 					<a href={LAB.youtube} target="_blank" rel="noopener">
 						유튜브 채널
 					</a>
@@ -105,7 +107,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
 
 	<section>
 		<div class="section-head">
-			<h2>프로젝트</h2>
+			<h2>연구</h2>
 			<a href="/projects">전체 보기</a>
 		</div>
 		<ol class="stack">
