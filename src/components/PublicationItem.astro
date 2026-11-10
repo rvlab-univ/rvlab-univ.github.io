@@ -69,27 +69,20 @@ const parts = authors.split(new RegExp(`(${escaped.join('|')})`, 'g'));
 	.type {
 		align-self: start;
 		padding: 0.15rem 0;
-		border-radius: 6px;
-		background: var(--accent-soft);
-		color: var(--accent);
+		background: var(--tag-bg);
+		color: var(--text);
 		font-size: 0.78rem;
 		font-weight: 700;
 		text-align: center;
 	}
 	.type.intl-journal {
-		background: #e7f6ec;
-		color: #1d7a3e;
+		background: var(--tag-bg);
+		color: var(--text);
 	}
 	.type.domestic-journal,
 	.type.domestic-conference {
 		background: var(--bg-alt);
 		color: var(--text-muted);
-	}
-	@media (prefers-color-scheme: dark) {
-		.type.intl-journal {
-			background: #143322;
-			color: #7fd6a0;
-		}
 	}
 	.title {
 		font-weight: 700;
@@ -99,9 +92,8 @@ const parts = authors.split(new RegExp(`(${escaped.join('|')})`, 'g'));
 		display: inline-block;
 		margin-right: 0.4rem;
 		padding: 0 0.4rem;
-		border: 1px solid #d69e2e;
-		border-radius: 4px;
-		color: #b7791f;
+		border: 1px solid var(--focus);
+		color: var(--warn);
 		font-size: 0.72rem;
 		font-weight: 700;
 		vertical-align: 0.15em;
@@ -116,7 +108,7 @@ const parts = authors.split(new RegExp(`(${escaped.join('|')})`, 'g'));
 	}
 	.award {
 		margin-left: 0.5rem;
-		color: #b7791f;
+		color: var(--warn);
 		font-weight: 700;
 	}
 	.award a {

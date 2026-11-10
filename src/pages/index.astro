@@ -1,13 +1,18 @@
 ---
+import { Image } from 'astro:assets';
 import { getCollection, render } from 'astro:content';
+import HeroDetect from '../components/HeroDetect.astro';
 import NewsCard from '../components/NewsCard.astro';
+import PersonFigure from '../components/PersonFigure.astro';
 import PublicationItem from '../components/PublicationItem.astro';
 import VideoThumb from '../components/VideoThumb.astro';
 import { LAB } from '../consts';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { attachment } from '../lib/attachments';
 import { getPage, getResearchAreas, getSortedPublications } from '../lib/content';
+import { pad } from '../lib/format';
 
-// 내용 수정: src/content/home.md (소개 문구 + 아래쪽 ## 절들), src/content/research.md
+// 내용 수정: src/content/home.md (# 제목 + 소개 문구 + 아래쪽 ## 절들). 나머지 절은 다른 문서에서 자동으로 가져온다
 const home = await getPage('home');
 const { Content: Lead } = await render(home);
 // home.md 의 ## 절: 쓴 순서대로 전부 표시 (사진만 있으면 로고 목록, 아니면 글 상자)
@@ -17,58 +22,68 @@ const sections = await Promise.all(
 		.map(async (s) => ({ ...s.data, Content: (await render(s)).Content })),
 );
 const areas = await getResearchAreas();
-
+// 연구 카드: 연구 분야의 대표 연구(### 주제)들, 문서 순서. 영상은 그 자리에서 재생되고, 대표 사진이 있으면 썸네일로 쓴다
+const topics = areas.flatMap((a) =>
+	a.data.topics.map((t) => ({ ...t, area: a.data.title, href: `/research#${a.id}`, cover: attachment(t.image) })),
+);
 const news = (await getCollection('news'))
 	.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
-	.slice(0, 3);
+	.slice(0, 4);
 const pubs = await getSortedPublications();
-const highlights = areas.flatMap((a) => a.data.topics.map((t) => ({ ...t, pillar: a.data.titleEn })));
+
+// 과제 (projects.md): 최신 순
+const projects = (await getCollection('projects'))
+	.sort((a, b) => b.data.no - a.data.no)
+	.map((p) => ({ id: p.id, ...p.data, cover: attachment(p.data.image) }));
+// 첫 화면: 대표 사진 아래 "탐지:" 줄을 적은 연구 주제(research.md)와 과제(projects.md), 문서 순서대로.
+// 하나도 없으면 대표 사진 하나만 박스 없이
+const candidates = [
+	...topics,
+	...projects.map((p) => ({ ...p, href: `/projects#${p.id}` })),
+].flatMap(({ title, href, cover, imageAlt, detections }) =>
+	cover ? [{ title, href, image: cover, alt: imageAlt ?? title, detections }] : [],
+);
+const detected = candidates.filter((c) => c.detections.length);
+const slides = (detected.length ? detected : candidates.slice(0, 1)).map((c, i) => ({ ...c, no: i + 1 }));
+
+// 구성원 (members.md): 지도교수·졸업생을 뺀 학생, 문서 순서. 팀 버튼은 팀이 둘 이상일 때만
+const students = (await getCollection('members'))
+	.filter((m) => m.data.role !== 'professor' && m.data.role !== 'alumni')
+	.sort((a, b) => a.data.order - b.data.order)
+	.map((m) => ({ ...m.data, team: m.data.team ?? m.data.group }));
+const teams = [...Map.groupBy(students, (m) => m.team)].map(([name, people]) => ({ name, count: people.length }));
+// 제목 뒤에 흐리게 까는 로고 (톱니가 회전함). 파일이 없으면 생략
+const mark = attachment('logo-transparent.svg');
 ---
 
 <BaseLayout description={home.data.description}>
-	<Fragment slot="head">
-		<!-- 등장 애니메이션 전에 hero 내용이 잠깐 보였다 사라지지 않게 숨겨 둔다 (JS가 꺼져 있으면 그대로 보임).
-		     아래 GSAP 스크립트가 실행되지 않더라도 3초 뒤에는 보이게 한다 -->
-		<script is:inline>
-			if (matchMedia('(prefers-reduced-motion: no-preference)').matches) {
-				document.documentElement.classList.add('hero-pending');
-				setTimeout(() => document.documentElement.classList.remove('hero-pending'), 3000);
-			}
-		</script>
-	</Fragment>
-
 	<section slot="hero" class="hero">
-		<div class="hero-inner">
-			<p class="eyebrow">{LAB.university}</p>
-			<h1>{LAB.name}<span>{LAB.fullName}</span></h1>
+		<HeroDetect slides={slides}>
+			<div class="title">
+				{mark && <Image class="mark" src={mark} width={480} height={480} alt="" loading="eager" />}
+				<h1>{home.data.title}</h1>
+			</div>
 			<div class="lead">
 				<Lead />
 			</div>
-			<div class="cta">
-				<a class="btn primary" href="/research">연구 분야 보기</a>
-				<a class="btn" href="/publications">논문 목록</a>
-				<a class="btn" href={LAB.youtube} target="_blank" rel="noopener">▶ YouTube</a>
-			</div>
-		</div>
+			<a class="btn" href="/research">연구 분야 보기</a>
+		</HeroDetect>
 	</section>
 
-	<section class="areas">
+	<section>
 		<div class="section-head">
 			<h2>연구 분야</h2>
-			<a href="/research">자세히 →</a>
+			<a href="/research">자세히</a>
 		</div>
-		<ul class="pillars">
+		<ul class="areas">
 			{
 				areas.map((a) => (
 					<li>
-						<a class="card pillar" href={`/research#${a.id}`}>
-							<span class="icon" aria-hidden="true">
-								{a.data.icon}
-							</span>
-							<p class="en">{a.data.titleEn}</p>
-							<h3>{a.data.title}</h3>
-							<p class="muted">{a.data.summary}</p>
-						</a>
+						<h3>
+							<a href={`/research#${a.id}`}>{a.data.title}</a>
+						</h3>
+						<p>{a.data.summary}</p>
+						{a.data.keywords.length > 0 && <p class="kw">{a.data.keywords.join(', ')}</p>}
 					</li>
 				))
 			}
@@ -77,27 +92,110 @@ const highlights = areas.flatMap((a) => a.data.topics.map((t) => ({ ...t, pillar
 
 	<section>
 		<div class="section-head">
-			<h2>연구 하이라이트</h2>
-			<a href={LAB.youtube} target="_blank" rel="noopener">유튜브 채널 →</a>
+			<h2>프로젝트</h2>
+			<a href="/projects">전체 보기</a>
 		</div>
-		<ul class="highlights">
+		<ul class="project-grid">
 			{
-				highlights.map((h) => (
+				projects.slice(0, 6).map((p) => (
 					<li>
-						{h.video && <VideoThumb id={h.video} title={h.title} />}
-						<p class="en">{h.pillar}</p>
-						<h3>{h.title}</h3>
-						<p class="muted">{h.summary}</p>
+						<a href={`/projects#${p.id}`}>
+							{p.cover && (
+								<Image
+									src={p.cover}
+									alt={p.imageAlt ?? ''}
+									widths={[400, 640]}
+									sizes="(max-width: 760px) 100vw, 400px"
+									loading="lazy"
+								/>
+							)}
+							<span class="no det-label">{pad(p.no)}</span>
+							<h3>{p.title}</h3>
+						</a>
+						<p>
+							{p.funder} · {p.period}
+						</p>
 					</li>
 				))
 			}
 		</ul>
 	</section>
 
+	{
+		topics.length > 0 && (
+			<section>
+				<div class="section-head">
+					<h2>연구</h2>
+					<a href={LAB.youtube} target="_blank" rel="noopener">
+						유튜브 채널
+					</a>
+				</div>
+				<ol class="stack">
+					{topics.map((t, i) => (
+						<li class="stack-card">
+							<div class="stack-text">
+								<span class="no det-label">{pad(i + 1)}</span>
+								<h3>{t.title}</h3>
+								<p class="meta">{t.area}</p>
+								{t.summary && <p class="summary">{t.summary}</p>}
+								<a href={t.href}>자세히</a>
+							</div>
+							{t.video ? (
+								<VideoThumb id={t.video} title={t.title} poster={t.cover} />
+							) : (
+								t.cover && <Image src={t.cover} alt={t.imageAlt ?? ''} widths={[480, 720, 960]} sizes="(max-width: 760px) 100vw, 640px" loading="lazy" />
+							)}
+						</li>
+					))}
+				</ol>
+			</section>
+		)
+	}
+
+	{
+		students.length > 0 && (
+			<section data-people>
+				<div class="section-head">
+					<h2>구성원</h2>
+					{teams.length > 1 && (
+						<div class="teams" role="group" aria-label="팀으로 거르기">
+							<button type="button" aria-pressed="true" data-team="">
+								전체 <b>{students.length}</b>
+							</button>
+							{teams.map((t) => (
+								<button type="button" aria-pressed="false" data-team={t.name}>
+									{t.name} <b>{t.count}</b>
+								</button>
+							))}
+						</div>
+					)}
+					<div class="scroll-nav">
+						<button type="button" data-prev aria-label="이전 구성원">
+							‹
+						</button>
+						<button type="button" data-next aria-label="다음 구성원">
+							›
+						</button>
+					</div>
+				</div>
+				<ul class="people" data-row tabindex="0" aria-label="구성원 목록, 좌우로 넘길 수 있음">
+					{students.map((m) => (
+						<li data-team={m.team}>
+							<PersonFigure name={m.name} research={m.research} />
+						</li>
+					))}
+				</ul>
+				<a class="more" href="/members">
+					구성원 전체 보기
+				</a>
+			</section>
+		)
+	}
+
 	<section>
 		<div class="section-head">
-			<h2>NEWS</h2>
-			<a href="/news">전체 보기 →</a>
+			<h2>소식</h2>
+			<a href="/news">전체 보기</a>
 		</div>
 		<ul class="news">
 			{
@@ -113,7 +211,7 @@ const highlights = areas.flatMap((a) => a.data.topics.map((t) => ({ ...t, pillar
 	<section>
 		<div class="section-head">
 			<h2>최근 논문</h2>
-			<a href="/publications">전체 보기 →</a>
+			<a href="/publications">전체 보기</a>
 		</div>
 		<ul class="pubs">
 			{pubs.slice(0, 3).map((pub) => <PublicationItem pub={pub} />)}
@@ -123,10 +221,8 @@ const highlights = areas.flatMap((a) => a.data.topics.map((t) => ({ ...t, pillar
 	{
 		sections.map(({ title, kind, Content }) => (
 			<section class:list={['home-section', kind]}>
-				<div class="section-head">
-					<h2>{title}</h2>
-				</div>
-				<div class:list={['body', { 'prose card': kind === 'text' }]}>
+				<h2>{title}</h2>
+				<div class="body">
 					<Content />
 				</div>
 			</section>
@@ -135,253 +231,351 @@ const highlights = areas.flatMap((a) => a.data.topics.map((t) => ({ ...t, pillar
 </BaseLayout>
 
 <script>
-	import { gsap } from 'gsap';
-	import { ScrollTrigger } from 'gsap/ScrollTrigger';
-
-	gsap.registerPlugin(ScrollTrigger);
-
-	// 시스템에서 '동작 줄이기'를 켠 사용자에게는 애니메이션 없이 보여준다
-	gsap.matchMedia().add('(prefers-reduced-motion: no-preference)', () => {
-		// 등장: 학교명 → 제목 → 소개 문구 → 버튼 순서로 떠오른다
-		gsap.from('.hero-inner > *', { y: 24, autoAlpha: 0, duration: 0.8, stagger: 0.1, ease: 'power3.out' });
-		document.documentElement.classList.remove('hero-pending');
-
-		// 스크롤: hero 는 제자리에 멈춘 채 작아지며 뒤로 사라지고, 연구 분야부터 시작하는 본문이 그 위를 덮으며 올라온다.
-		// hero 가 한 화면에 다 들어올 때만 고정한다 (아니면 아래쪽 버튼을 볼 수 없게 된다)
-		const hero = document.querySelector<HTMLElement>('.hero')!;
-		if (hero.offsetTop + hero.offsetHeight > window.innerHeight) return;
-		gsap
-			.timeline({
-				defaults: { ease: 'none' },
-				scrollTrigger: {
-					trigger: hero,
-					start: 0,
-					end: () => `+=${hero.offsetHeight}`,
-					scrub: true,
-					pin: true,
-					pinSpacing: false,
-				},
-			})
-			.to('.hero-inner', { scale: 0.9, opacity: 0 })
-			.from('.areas', { y: 40 }, 0);
-	});
+	// 구성원 줄: ‹ › 는 한 화면 폭씩, 끝에 닿으면 비활성. 팀 버튼은 그 팀만 남긴다 (손으로 밀어도 된다)
+	for (const sec of document.querySelectorAll<HTMLElement>('[data-people]')) {
+		const row = sec.querySelector<HTMLElement>('[data-row]')!;
+		const prev = sec.querySelector<HTMLButtonElement>('[data-prev]')!;
+		const next = sec.querySelector<HTMLButtonElement>('[data-next]')!;
+		const sync = () => {
+			prev.disabled = row.scrollLeft < 4;
+			next.disabled = row.scrollLeft + row.clientWidth >= row.scrollWidth - 4;
+		};
+		prev.addEventListener('click', () => row.scrollBy({ left: -row.clientWidth }));
+		next.addEventListener('click', () => row.scrollBy({ left: row.clientWidth }));
+		row.addEventListener('scroll', () => requestAnimationFrame(sync), { passive: true });
+		addEventListener('resize', sync);
+		sec.querySelector('.teams')?.addEventListener('click', (e) => {
+			const b = (e.target as Element).closest<HTMLElement>('button');
+			if (!b) return;
+			sec.querySelectorAll('.teams button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+			row.querySelectorAll<HTMLElement>('li').forEach((li) => (li.hidden = !!b.dataset.team && li.dataset.team !== b.dataset.team));
+			row.scrollLeft = 0;
+			sync();
+		});
+		sync();
+	}
 </script>
 
 <style>
-	:global(.hero-pending) .hero-inner > * {
-		visibility: hidden;
-	}
-	/* 스크롤하면 본문이 hero 위를 덮으며 올라온다: 본문 배경을 화면 양옆까지 채운다 (가로 스크롤은 생기지 않음) */
-	:global(main) {
-		position: relative;
-		z-index: 1;
-		background: var(--bg);
-		box-shadow: 0 0 0 100vmax var(--bg);
-		clip-path: inset(0 -100vmax);
-	}
 	.hero {
-		padding: 5rem 1rem 4rem;
-		background:
-			radial-gradient(circle at 85% 10%, var(--accent-soft), transparent 55%),
-			linear-gradient(var(--bg-alt), var(--bg));
-		border-bottom: 1px solid var(--border);
-	}
-	.hero-inner {
+		overflow-x: clip; /* 제목 뒤 로고가 좁은 화면에서 가로로 넘치지 않게 */
 		max-width: var(--max-width);
 		margin: 0 auto;
+		padding: 56px 1rem 96px; /* main 과 같은 좌우 여백 */
 	}
-	.eyebrow {
-		margin: 0 0 0.5rem;
-		color: var(--accent);
-		font-weight: 700;
-		letter-spacing: 0.04em;
-		font-size: 0.95rem;
+	/* 제목 뒤 로고: 제목 글자 크기의 3.5배, 흐리게. 사진 칸에 닿지 않게 오른쪽을 조금만 넘긴다 */
+	.title {
+		--h1: clamp(2.75rem, 6vw, 5.25rem);
+		position: relative;
+		isolation: isolate;
+	}
+	.title :global(.mark) {
+		position: absolute;
+		z-index: -1;
+		top: 50%;
+		right: -20px;
+		width: calc(var(--h1) * 3.5);
+		height: auto;
+		transform: translateY(-50%);
+		opacity: 0.18;
+		pointer-events: none;
 	}
 	.hero h1 {
-		font-size: clamp(2.6rem, 7vw, 4.2rem);
-		letter-spacing: -0.03em;
-	}
-	.hero h1 span {
-		display: block;
-		color: var(--text-muted);
-		font-size: 0.42em;
-		font-weight: 500;
-		letter-spacing: 0;
+		margin: 0 0 20px;
+		font-size: var(--h1);
+		line-height: 1.05;
+		letter-spacing: -0.02em;
 	}
 	.lead {
-		max-width: 36em;
-		font-size: 1.15rem;
+		max-width: 30em;
+		margin-bottom: 28px;
+		color: var(--text-muted);
 	}
 	.lead :global(p) {
 		margin: 0;
 	}
-	.cta {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.75rem;
-		margin-top: 1.75rem;
-	}
-	.btn {
-		display: inline-flex;
-		align-items: center;
-		padding: 0.7rem 1.3rem;
-		border: 1px solid var(--border);
-		border-radius: 10px;
-		background: var(--card);
+	.lead :global(strong) {
 		color: var(--text);
-		font-weight: 700;
-		text-decoration: none;
-	}
-	.btn:hover {
-		border-color: var(--accent);
-		color: var(--accent);
-	}
-	.btn.primary {
-		border-color: var(--accent);
-		background: var(--accent);
-		color: #fff;
-	}
-	.btn.primary:hover {
-		background: var(--accent-dark);
-		color: #fff;
 	}
 
 	section + section {
-		margin-top: 4rem;
+		margin-top: 96px;
 	}
-	.section-head {
-		display: flex;
-		align-items: baseline;
-		justify-content: space-between;
-		margin-bottom: 1.25rem;
-	}
-	.section-head a {
-		font-size: 0.95rem;
-		text-decoration: none;
-	}
-	.pillars,
-	.highlights,
-	.news,
-	.pubs {
+	ul,
+	ol {
 		margin: 0;
 		padding: 0;
 		list-style: none;
 	}
-	.pillars {
+
+	/* 연구 분야: 카드 없이 두 단 */
+	.areas {
 		display: grid;
 		grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-		gap: 1.25rem;
+		gap: 48px;
 	}
-	.pillar {
-		display: block;
-		height: 100%;
+	.areas h3 {
+		margin: 0 0 8px;
+		font-size: 1.4rem;
+	}
+	.areas h3 a {
 		color: var(--text);
 		text-decoration: none;
-		transition:
-			transform 0.15s,
-			border-color 0.15s;
 	}
-	.pillar:hover {
-		transform: translateY(-2px);
-		border-color: var(--accent);
-		color: var(--text);
+	.areas h3 a:hover {
+		text-decoration: underline;
 	}
-	.icon {
-		display: block;
-		margin-bottom: 0.5rem;
-		font-size: 2rem;
+	.areas p {
+		margin: 0 0 12px;
 	}
-	.en {
-		margin: 0;
-		color: var(--accent);
-		font-size: 0.78rem;
-		font-weight: 700;
-		letter-spacing: 0.05em;
-		text-transform: uppercase;
-	}
-	.pillar p:last-child {
-		margin: 0;
-		font-size: 0.95rem;
-	}
-	.highlights {
-		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-		gap: 1.75rem 1.25rem;
-	}
-	.highlights .en {
-		margin-top: 0.75rem;
-	}
-	.highlights h3 {
-		margin: 0.1rem 0 0.25rem;
-		font-size: 1.05rem;
-	}
-	.highlights p.muted {
-		margin: 0;
+	.kw {
+		color: var(--text-muted);
 		font-size: 0.9rem;
 	}
+
+	/* 프로젝트: 대표 사진 격자 */
+	.project-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+		gap: 36px 24px;
+	}
+	.project-grid a {
+		color: var(--text);
+		text-decoration: none;
+	}
+	.project-grid a:hover h3 {
+		text-decoration: underline;
+	}
+	.project-grid :global(img) {
+		display: block;
+		width: 100%;
+		aspect-ratio: 16 / 9;
+		margin-bottom: 14px;
+		object-fit: cover;
+		background: var(--card);
+	}
+	.project-grid h3 {
+		margin: 4px 0;
+		font-size: 1.05rem;
+		line-height: 1.4;
+	}
+	.project-grid p {
+		margin: 0;
+		color: var(--text-muted);
+		font-size: 0.9rem;
+	}
+
+	/* 연구: 스크롤하면 카드가 위로 쌓인다. 오른쪽 영상은 누르면 그 자리에서 재생 */
+	.stack-card {
+		position: sticky;
+		top: 96px;
+		display: grid;
+		grid-template-columns: 5fr 6fr;
+		margin-bottom: 28px;
+		border: 1px solid var(--border);
+		background: var(--card);
+		box-shadow: 0 -10px 30px rgb(0 0 0 / 0.5);
+	}
+	.stack-text {
+		display: flex;
+		flex-direction: column;
+		padding: 36px;
+	}
+	.no {
+		color: var(--detect); /* 번호는 탐지 초록 */
+	}
+	.stack-text h3 {
+		margin: 10px 0 6px;
+		font-size: 1.45rem;
+		line-height: 1.35;
+	}
+	.meta {
+		margin: 0 0 16px;
+		color: var(--text-muted);
+		font-size: 0.9rem;
+	}
+	.summary {
+		margin: 0 0 20px;
+		color: var(--text-muted);
+		font-size: 0.95rem;
+	}
+	.stack-text a {
+		margin-top: auto;
+		color: var(--text);
+		font-weight: 500;
+	}
+	/* 오른쪽 사진·영상은 16:9. 글이 더 길면 그만큼 늘어나고 사진은 잘린다 */
+	.stack-card > :global(img),
+	.stack-card > :global(.video) {
+		width: 100%;
+		height: auto;
+		aspect-ratio: 16 / 9;
+		object-fit: cover;
+		background: #111;
+	}
+
+	/* 구성원: 가로로 넘기는 줄. 화면에 6명(모바일 2.3명), 끝은 살짝 잘려 보여 넘길 수 있음을 알린다 */
+	.teams {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 6px;
+	}
+	.teams button,
+	.scroll-nav button {
+		padding: 6px 12px;
+		border: 1px solid var(--border);
+		background: var(--card);
+		color: var(--text);
+		font: inherit;
+		font-size: 0.875rem;
+		cursor: pointer;
+	}
+	.teams button b {
+		margin-left: 4px;
+		color: var(--text-muted);
+		font-weight: 500;
+	}
+	.teams button[aria-pressed='true'] {
+		border-color: var(--text);
+		background: var(--text);
+		color: var(--bg);
+	}
+	.teams button[aria-pressed='true'] b {
+		color: inherit;
+		opacity: 0.7;
+	}
+	.scroll-nav {
+		display: flex;
+		gap: 6px;
+		margin-left: auto;
+	}
+	.scroll-nav button {
+		width: 40px;
+		font-size: 1.1rem;
+		line-height: 1;
+	}
+	.scroll-nav button:disabled {
+		opacity: 0.35;
+		cursor: default;
+	}
+	.people {
+		display: grid;
+		grid-auto-flow: column;
+		grid-auto-columns: calc((100% - 5 * 16px) / 6.3);
+		gap: 16px;
+		overflow-x: auto;
+		padding: 24px 0 4px; /* 얼굴 박스 라벨이 잘리지 않게 위 여백 */
+		margin-top: -24px;
+		scroll-snap-type: x mandatory;
+		scroll-behavior: smooth;
+		scrollbar-width: none;
+	}
+	.people::-webkit-scrollbar {
+		display: none;
+	}
+	.people li {
+		scroll-snap-align: start;
+	}
+	.people li[hidden] {
+		display: none;
+	}
+	.more {
+		display: inline-block;
+		margin-top: 20px;
+		color: var(--text);
+		font-weight: 500;
+	}
+
 	.news {
 		display: grid;
 		grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-		gap: 1rem;
+		gap: 16px;
 	}
-	/* home.md 의 글 상자 절 */
-	.text .body {
-		background: var(--accent-soft);
-		border-color: transparent;
+
+	/* home.md 의 절 */
+	.home-section > h2 {
+		margin-bottom: 28px;
+		font-size: 2rem;
 	}
-	.text .body :global(blockquote) {
-		margin: 0.75rem 0 0;
-		padding: 0;
-		border: 0;
-		color: var(--text-muted);
-		font-size: 0.85rem;
-	}
-	.text .body :global(blockquote p) {
-		margin: 0;
-	}
-	/* 마지막 줄에 링크 하나만 있으면 버튼 */
-	.text .body :global(p:last-child:has(> a:only-child)) {
-		margin: 1rem 0 0;
-	}
-	.text .body :global(p:last-child > a:only-child) {
-		display: inline-flex;
-		padding: 0.6rem 1.2rem;
-		border-radius: 10px;
-		background: var(--accent);
-		color: #fff;
-		font-weight: 700;
-		text-decoration: none;
-	}
-	.text .body :global(p:last-child > a:only-child:hover) {
-		background: var(--accent-dark);
-	}
-	/* home.md 의 로고 절 (사진만 있는 절) */
+	/* 로고 목록 */
 	.logos .body {
 		display: grid;
 		grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-		gap: 1rem;
+		gap: 12px;
 	}
 	.logos .body :global(p) {
-		display: grid;
-		place-items: center;
-		height: 88px;
-		margin: 0;
-		padding: 0.75rem;
-		border: 1px solid var(--border);
-		border-radius: var(--radius);
-		background: #fff;
+		display: contents;
 	}
 	.logos .body :global(img) {
-		max-width: 100%;
-		max-height: 100%;
-		width: auto;
-		height: auto;
+		width: 100%;
+		height: 84px;
+		padding: 14px;
+		border: 1px solid var(--border);
+		background: #fff;
 		object-fit: contain;
-		border-radius: 0;
 	}
-	@media (max-width: 720px) {
+	/* 글 상자: 카드 바탕. > 줄은 작은 공지, 끝에 링크 하나만 있으면 초록 버튼 */
+	.text {
+		padding: 56px;
+		border: 1px solid var(--border);
+		background: var(--card);
+	}
+	.text > h2 {
+		margin-bottom: 12px;
+		font-size: 1.85rem;
+	}
+	.text .body :global(p) {
+		max-width: 46em;
+		margin: 0 0 12px;
+	}
+	.text .body :global(a) {
+		color: inherit;
+	}
+	.text .body :global(blockquote) {
+		margin: 0 0 24px;
+		padding: 0;
+		border: 0;
+		color: var(--text-muted);
+		font-size: 0.9rem;
+	}
+	.text .body :global(p:last-child:has(> a:only-child)) {
+		margin: 24px 0 0;
+	}
+	.text .body :global(p:last-child > a:only-child) {
+		display: inline-block;
+		padding: 12px 20px;
+		background: var(--detect);
+		color: #fff;
+		font-weight: 500;
+		text-decoration: none;
+	}
+
+	@media (max-width: 760px) {
 		.hero {
-			padding: 3rem 1rem 2.5rem;
+			padding: 24px 16px 56px;
+		}
+		section + section {
+			margin-top: 72px;
+		}
+		.stack-card {
+			top: 72px;
+			grid-template-columns: 1fr;
+		}
+		.stack-card > :global(img),
+		.stack-card > :global(.video) {
+			order: -1;
+		}
+		.stack-text {
+			padding: 24px;
+		}
+		.people {
+			grid-auto-columns: calc((100% - 16px) / 2.3);
+		}
+		.scroll-nav {
+			display: none;
+		}
+		.text {
+			padding: 32px 24px;
 		}
 	}
 </style>

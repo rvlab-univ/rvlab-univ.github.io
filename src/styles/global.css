@@ -1,33 +1,21 @@
 /* RV Lab 전역 스타일 (Astro blog 템플릿 기반) */
 
 :root {
-	--accent: #1f5fbf;
-	--accent-dark: #143f80;
-	--accent-soft: #e8f0fc;
-	--text: #1b2230;
-	--text-muted: #5b6577;
-	--bg: #ffffff;
-	--bg-alt: #f5f7fa;
-	--border: #e2e6ed;
-	--card: #ffffff;
-	--shadow: 0 1px 2px rgba(20, 30, 50, 0.04), 0 8px 24px rgba(20, 30, 50, 0.06);
-	--radius: 14px;
-	--max-width: 1080px;
-}
-
-@media (prefers-color-scheme: dark) {
-	:root {
-		--accent: #6ea3ff;
-		--accent-dark: #a9c8ff;
-		--accent-soft: #1a2740;
-		--text: #e6e9ef;
-		--text-muted: #9aa4b5;
-		--bg: #0f131a;
-		--bg-alt: #151b24;
-		--border: #263042;
-		--card: #161d28;
-		--shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.25);
-	}
+	/* RV LAB 디자인 토큰. 색·서체·모서리는 여기서만 정한다.
+	   어두운 화면 하나뿐이다 (교수님 요청, 2026-11). 강조 버튼·상자는 글자색 바탕에 바탕색 글자로 뒤집는다 */
+	color-scheme: dark;
+	--bg: #0e0f11; /* 바탕 */
+	--bg-alt: #17181b; /* 사진 없는 자리, 코드 */
+	--card: #141518; /* 카드 바탕 */
+	--text: #ecede9; /* 글자, 강조 버튼·상자 */
+	--text-muted: #9a9ea6; /* 보조 글자. 바탕 대비 7:1 */
+	--link-hover: #ffffff;
+	--tag-bg: #23252a; /* 분류 표시 바탕 */
+	--border: #2a2c31;
+	--detect: #19a974; /* 탐지 박스, 번호, 초록 버튼 */
+	--focus: #ff5b3a; /* 따라오는 박스, 임계선, 현재 메뉴, 키보드 초점 */
+	--warn: #ff8a6e; /* 심사 중·수상 글자 (주황 계열, 바탕 대비 확보) */
+	--max-width: 1200px;
 }
 
 *,
@@ -68,20 +56,21 @@ h4 {
 	letter-spacing: -0.02em;
 }
 h1 {
-	font-size: 2.25rem;
+	font-size: clamp(2.25rem, 4.5vw, 3.25rem);
+	line-height: 1.1;
 }
 h2 {
-	font-size: 1.6rem;
+	font-size: 1.75rem;
 }
 h3 {
 	font-size: 1.2rem;
 }
 
 a {
-	color: var(--accent);
+	color: var(--text);
 }
 a:hover {
-	color: var(--accent-dark);
+	color: var(--link-hover);
 }
 
 p {
@@ -91,12 +80,10 @@ p {
 img {
 	max-width: 100%;
 	height: auto;
-	border-radius: var(--radius);
 }
 
 code {
 	padding: 0.1em 0.35em;
-	border-radius: 4px;
 	background: var(--bg-alt);
 	font-size: 0.9em;
 }
@@ -109,15 +96,8 @@ hr {
 
 /* 공용 유틸리티 */
 .page-header {
-	margin-bottom: 2.5rem;
-}
-.page-header .eyebrow {
-	margin: 0 0 0.25rem;
-	color: var(--accent);
-	font-size: 0.85rem;
-	font-weight: 700;
-	letter-spacing: 0.08em;
-	text-transform: uppercase;
+	margin-bottom: 3rem;
+	padding-top: 1rem;
 }
 .page-header p {
 	color: var(--text-muted);
@@ -126,19 +106,17 @@ hr {
 .card {
 	padding: 1.5rem;
 	border: 1px solid var(--border);
-	border-radius: var(--radius);
 	background: var(--card);
-	box-shadow: var(--shadow);
 }
 
+/* 작은 분류 표시: 네모, 연한 초록 바탕 */
 .badge {
 	display: inline-block;
-	padding: 0.1rem 0.55rem;
-	border-radius: 999px;
-	background: var(--accent-soft);
-	color: var(--accent);
+	padding: 0.1rem 0.45rem;
+	background: var(--tag-bg);
+	color: var(--text);
 	font-size: 0.78rem;
-	font-weight: 700;
+	font-weight: 500;
 	white-space: nowrap;
 }
 
@@ -185,8 +163,6 @@ hr {
 	margin: 1.75rem 0 0.75rem;
 	color: var(--text-muted);
 	font-size: 0.95rem;
-	letter-spacing: 0.04em;
-	text-transform: uppercase;
 }
 .prose ul,
 .prose ol {
@@ -195,14 +171,6 @@ hr {
 }
 .prose li + li {
 	margin-top: 0.4rem;
-}
-.prose .eyebrow {
-	margin: 0;
-	color: var(--accent);
-	font-size: 0.85rem;
-	font-weight: 700;
-	letter-spacing: 0.05em;
-	text-transform: uppercase;
 }
 
 /* Markdown 본문의 YouTube 영상 (YouTube 주소만 있는 줄) */
@@ -219,7 +187,6 @@ hr {
 	position: relative;
 	display: block;
 	overflow: hidden;
-	border-radius: 10px;
 	background: #000;
 	color: #fff;
 	text-decoration: none;
@@ -230,7 +197,6 @@ hr {
 	aspect-ratio: 16 / 9;
 	margin: 0;
 	object-fit: cover;
-	border-radius: 0;
 	transition: opacity 0.2s;
 }
 .yt:hover img {
@@ -258,4 +224,76 @@ hr {
 	background: var(--card);
 	color: var(--text);
 	font-size: 0.85rem;
+}
+
+/* 키보드 초점은 사이트 전체에서 같은 모양 */
+:focus-visible {
+	outline: 2px solid var(--focus);
+	outline-offset: 2px;
+}
+
+/* 탐지 라벨: 고정폭 서체는 여기에만 */
+.det-label {
+	font-family: var(--font-mono);
+	font-weight: 500;
+	font-size: 12px;
+	line-height: 1;
+}
+
+/* 절 머리: 왼쪽 제목, 오른쪽 "전체 보기" 링크 */
+.section-head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 12px 20px;
+	margin-bottom: 32px;
+}
+.section-head h2 {
+	margin: 0;
+	font-size: 2rem;
+}
+.section-head > a {
+	margin-left: auto;
+	color: var(--text);
+	font-size: 0.95rem;
+	font-weight: 500;
+}
+
+/* 버튼: 먹색 네모 */
+.btn {
+	display: inline-block;
+	padding: 12px 20px;
+	background: var(--text);
+	color: var(--bg);
+	font-weight: 500;
+	text-decoration: none;
+}
+.btn:hover {
+	background: var(--link-hover);
+	color: #fff;
+}
+
+/* 사진 위 얼굴 박스: 마우스를 올리면 이름과 점수 */
+.face {
+	position: relative;
+}
+.face .face-box {
+	position: absolute;
+	inset: 16% 18% 38% 18%;
+	border: 1.5px solid var(--detect);
+	opacity: 0;
+	transition: opacity 0.15s;
+	pointer-events: none;
+}
+.face:hover .face-box {
+	opacity: 1;
+}
+.face-box span {
+	position: absolute;
+	left: -1.5px;
+	bottom: 100%;
+	padding: 4px 6px;
+	background: var(--detect);
+	color: #fff;
+	white-space: nowrap;
 }

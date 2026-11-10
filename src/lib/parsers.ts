@@ -119,13 +119,17 @@ export function parseResearch(doc: Doc): Entry[] {
 				keywords,
 				summary: textOf(summary),
 				topics: topics.map((t) => {
-					const quote = t.nodes.find((n) => n.type === 'blockquote');
+					const { image, imageAlt, detections, rest } = takeCover(doc, t.nodes);
+					const quote = rest.find((n) => n.type === 'blockquote');
 					const paper = quote ? textOf([quote]) : '';
 					const status = paper.match(/^(.+?)\s*·\s*/);
 					return {
 						title: t.title,
-						video: t.nodes.map(youtubeId).find(Boolean),
-						summary: textOf(t.nodes.filter((n) => n.type === 'paragraph' && !youtubeId(n))),
+						video: rest.map(youtubeId).find(Boolean),
+						summary: textOf(rest.filter((n) => n.type === 'paragraph' && !youtubeId(n))),
+						image,
+						imageAlt,
+						detections,
 						status: status?.[1],
 						paper: status ? paper.slice(status[0].length) : paper,
 					};
@@ -136,19 +140,20 @@ export function parseResearch(doc: Doc): Entry[] {
 	});
 }
 
-const ROLES: Record<string, string> = {
+// 구성원 구분 (## 제목) → 데이터 값. content.config.ts 스키마도 이 목록을 쓴다
+export const ROLES = {
 	지도교수: 'professor',
 	박사과정: 'phd',
 	석사과정: 'ms',
 	학부연구생: 'undergrad',
 	졸업생: 'alumni',
-};
+} as const;
 
 // 구성원: ## 구분 / ### 지도교수 또는 팀 / - **이름** (영문) — 연구 주제
 export function parseMembers(doc: Doc): Entry[] {
 	const entries: Entry[] = [];
 	for (const group of splitSections(titled(doc).nodes, 2).sections) {
-		const role = ROLES[group.title];
+		const role = ROLES[group.title as keyof typeof ROLES];
 		if (!role) fail(doc, group.heading, `"${group.title}"은(는) 알 수 없는 구분입니다 (${Object.keys(ROLES).join(', ')})`);
 		const { intro, sections } = splitSections(group.nodes, 3);
 
@@ -191,7 +196,8 @@ export function parseMembers(doc: Doc): Entry[] {
 					const strong = p?.children.find((n) => n.type === 'strong');
 					if (!p || !strong) fail(doc, item, '학생 줄은 - **이름** — 연구 주제 형식이어야 합니다');
 					const name = textOf([strong]);
-					const rest = textOf([p]).slice(textOf([p]).indexOf(name) + name.length);
+					const line = textOf([p]);
+					const rest = line.slice(line.indexOf(name) + name.length);
 					const [, aliases, research] = rest.match(/^\s*(?:\(([^)]*)\))?\s*[—–-]?\s*(.*)$/s)!;
 					entries.push({
 						id: `${role}-${entries.length}`,
@@ -259,16 +265,26 @@ export function parsePublications(doc: Doc): Entry[] {
 	return entries;
 }
 
+// 맨 앞의 사진만 있는 줄 = 대표 사진, 바로 다음 "탐지:" 줄 = 그 사진 위 구성요소 박스 (둘 다 선택)
+// nodes에서 둘을 떼어 내고 나머지를 돌려준다
+function takeCover(doc: Doc, nodes: Doc['root']['children']) {
+	const rest = [...nodes];
+	const cover = rest[0] && imageOnly(rest[0]);
+	if (cover) rest.shift();
+	const isDetect = rest[0]?.type === 'paragraph' && /^탐지\s*:/.test(textOf([rest[0]]));
+	if (isDetect && !cover) fail(doc, rest[0], '"탐지:" 줄은 대표 사진 바로 아래에 적어주세요');
+	const detections = isDetect ? parseDetections(doc, rest[0], textOf([rest.shift()!])) : [];
+	return { image: cover?.url, imageAlt: cover?.alt ?? undefined, detections, rest };
+}
+
 // 연구 과제: ## 번호. 제목 / 첫 줄: 지원 기관 · 기간 (· Project Lead) / 나머지는 본문
 export function parseProjects(doc: Doc): Entry[] {
 	return splitSections(titled(doc).nodes, 2).sections.map((s, i) => {
 		const [, no, title] = s.title.match(/^(?:(\d+)\.\s*)?(.*)$/)!;
-		const [metaNode, ...rest] = s.nodes;
+		const [metaNode, ...afterMeta] = s.nodes;
 		const meta = metaNode?.type === 'paragraph' ? textOf([metaNode]).split('·').map((m) => m.trim()) : [];
 		if (meta.length < 2) fail(doc, s.heading, '제목 다음 줄에 "지원 기관 · 기간"을 적어주세요');
-		// 그 다음 사진만 있는 줄은 대표 이미지
-		const cover = rest[0] && imageOnly(rest[0]);
-		if (cover) rest.shift();
+		const { image, imageAlt, detections, rest } = takeCover(doc, afterMeta);
 		return {
 			id: `project-${no ?? i + 1}`,
 			data: {
@@ -277,11 +293,31 @@ export function parseProjects(doc: Doc): Entry[] {
 				funder: meta[0],
 				period: meta[1],
 				lead: meta.slice(2).some((m) => /project lead/i.test(m)),
-				image: cover?.url,
-				imageAlt: cover?.alt ?? undefined,
+				image,
+				imageAlt,
+				detections,
+				// 홈 카드용: 개요 첫 문장
+				summary: firstParagraph(rest).split(/(?<=\.)\s/)[0] || undefined,
 			},
 			body: sourceOf(doc, rest),
 		};
+	});
+}
+
+// 탐지: LiDAR 0.93 (40, 0, 8, 12) · stereo camera (16, 9, 8, 7)
+// 이름 [점수] (왼쪽, 위, 너비, 높이) — 좌표는 사진 기준 %. 점수를 비우면 적힌 순서대로 0.98에서 0.55까지 고르게 나눈다
+// (첫 화면의 점수 창이 0.5~1.0을 오가므로, 점수가 고르게 퍼져야 어느 구간에서든 박스가 보인다)
+type Detection = { name: string; score: number; box: [number, number, number, number] };
+function parseDetections(doc: Doc, node: Doc['root']['children'][number], line: string): Detection[] {
+	const items = line.replace(/^탐지\s*:\s*/, '').split('·').map((t) => t.trim()).filter(Boolean);
+	if (!items.length) fail(doc, node, '"탐지:" 뒤에 구성요소를 적어주세요. 예: 탐지: LiDAR (40, 0, 8, 12)');
+	return items.map((item, i) => {
+		const m = item.match(/^(.+?)(?:\s+(0?\.\d+|1(?:\.0+)?))?\s*\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)\s*\)$/);
+		if (!m) fail(doc, node, `"${item}" — "이름 (왼쪽, 위, 너비, 높이)" 모양으로 적어주세요. 점수는 이름 뒤에 선택: LiDAR 0.93 (40, 0, 8, 12)`);
+		const box = [m[3], m[4], m[5], m[6]].map(Number) as Detection['box'];
+		const [x, y, w, h] = box;
+		if (x + w > 100.5 || y + h > 100.5 || !w || !h) fail(doc, node, `"${item}" — 박스가 사진 밖으로 나갑니다. 좌표는 사진 기준 % (0~100)입니다`);
+		return { name: m[1].trim(), score: m[2] ? Number(m[2]) : +(0.98 - (i * 0.43) / Math.max(1, items.length - 1)).toFixed(2), box };
 	});
 }
 

@@ -21,6 +21,6 @@ const info = await getPage('publications');
 ---
 
 <BaseLayout title={info.data.title} description={info.data.description}>
-	<PageHeader page={info} eyebrow="Publications" />
+	<PageHeader page={info} />
 	<PublicationList page={page} baseUrl="/publications" counts={counts} />
 </BaseLayout>

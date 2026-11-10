@@ -1,0 +1,128 @@
+---
+// 스크롤을 따라오는 탐지 박스. 모든 페이지의 큰 제목(첫 화면 h1, 본문 h1·h2)을 차례로 감싼다.
+// 라벨은 그 제목 글자 그대로라서 특정 제목에 의존하지 않고, 새 절을 쓰면 자동으로 대상이 된다.
+// 평소엔 제목에 붙어 함께 스크롤하고(지연 없음), 대상이 바뀔 때만 0.18초 조준한다.
+---
+
+<div class="tracker" data-tracker aria-hidden="true" hidden>
+	<span class="det-label"></span>
+</div>
+
+<script>
+	import { decorScore } from '../lib/format';
+	const LINE = 0.4; // 화면 위에서 이 비율보다 위로 올라간 제목 중 마지막 것이 대상
+	const PAD = 8;
+	const box = document.querySelector<HTMLElement>('[data-tracker]')!;
+	const label = box.querySelector('span')!;
+	const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+	const heads = [...document.querySelectorAll<HTMLElement>('.hero h1, main h1, main h2')].filter((h) => h.offsetParent);
+	const name = (h: HTMLElement) => {
+		const t = (h.textContent ?? '').replace(/\s+/g, ' ').trim();
+		return t.length > 24 ? t.slice(0, 23) + '…' : t;
+	};
+	let active: HTMLElement | undefined;
+
+	function place(animate: boolean) {
+		if (!active) return;
+		// 여러 줄 제목은 실제 글자 영역만 감싼다 (블록 전체 폭이 아니라)
+		const range = document.createRange();
+		range.selectNodeContents(active);
+		const rects = [...range.getClientRects()];
+		// 가로는 글자 영역, 세로는 제목 블록 (글자 영역은 큰 제목에서 줄 높이보다 커져 아래 문단에 걸린다)
+		const block = active.getBoundingClientRect();
+		const r = rects.length
+			? {
+					left: Math.min(...rects.map((x) => x.left)),
+					top: block.top,
+					right: Math.max(...rects.map((x) => x.right)),
+					bottom: block.bottom,
+				}
+			: block;
+		box.classList.toggle('move', animate && !reduce);
+		Object.assign(box.style, {
+			left: `${r.left + scrollX - PAD}px`,
+			top: `${r.top + scrollY - PAD}px`,
+			width: `${r.right - r.left + PAD * 2}px`,
+			height: `${r.bottom - r.top + PAD * 2}px`,
+		});
+	}
+	function pick() {
+		// 맨 아래에 닿으면 끝쪽 제목은 40% 선까지 못 올라오므로, 화면에 보이는 마지막 제목을 고른다
+		const atEnd = scrollY + innerHeight >= document.documentElement.scrollHeight - 2;
+		const line = innerHeight * (atEnd ? 1 : LINE);
+		const next = heads.filter((h) => h.getBoundingClientRect().top < line).at(-1) ?? heads[0];
+		if (next === active) return;
+		active = next;
+		const t = name(next);
+		label.textContent = `${t} ${decorScore(t).toFixed(2)}`;
+		box.hidden = false;
+		place(true);
+		if (!reduce) {
+			box.classList.remove('lock');
+			void box.offsetWidth;
+			box.classList.add('lock');
+		}
+	}
+
+	if (heads.length) {
+		addEventListener('scroll', () => requestAnimationFrame(pick), { passive: true });
+		// 사진·서체가 늦게 불려 와 페이지 높이가 바뀌면 박스가 제자리에 남는다. 높이가 바뀔 때마다 다시 맞춘다
+		const ro = new ResizeObserver(() => place(false));
+		ro.observe(document.body);
+		heads.forEach((h) => ro.observe(h)); // 서체가 바뀌어 제목 크기가 달라질 때
+		document.fonts?.addEventListener('loadingdone', () => place(false));
+		addEventListener('load', () => place(false));
+		pick();
+	}
+</script>
+
+<style>
+	/* 네 모서리 꺾쇠만 그린다 */
+	.tracker {
+		--c: var(--focus);
+		--l: 14px;
+		position: absolute;
+		z-index: 5; /* 위에 붙는 헤더(10) 아래로 지나간다 */
+		pointer-events: none;
+		background:
+			linear-gradient(var(--c), var(--c)) 0 0 / var(--l) 2px,
+			linear-gradient(var(--c), var(--c)) 0 0 / 2px var(--l),
+			linear-gradient(var(--c), var(--c)) 100% 0 / var(--l) 2px,
+			linear-gradient(var(--c), var(--c)) 100% 0 / 2px var(--l),
+			linear-gradient(var(--c), var(--c)) 0 100% / var(--l) 2px,
+			linear-gradient(var(--c), var(--c)) 0 100% / 2px var(--l),
+			linear-gradient(var(--c), var(--c)) 100% 100% / var(--l) 2px,
+			linear-gradient(var(--c), var(--c)) 100% 100% / 2px var(--l);
+		background-repeat: no-repeat;
+	}
+	.tracker:global(.move) {
+		transition:
+			left 0.18s cubic-bezier(0.2, 0.9, 0.3, 1),
+			top 0.18s cubic-bezier(0.2, 0.9, 0.3, 1),
+			width 0.18s,
+			height 0.18s;
+	}
+	.tracker:global(.lock) {
+		animation: lock 0.22s ease-out;
+	}
+	@keyframes lock {
+		from {
+			transform: scale(1.12);
+			opacity: 0.4;
+		}
+	}
+	span {
+		position: absolute;
+		left: 0;
+		bottom: 100%;
+		padding: 4px 6px;
+		background: var(--focus);
+		color: #fff;
+		white-space: nowrap;
+	}
+	@media print {
+		.tracker {
+			display: none;
+		}
+	}
+</style>

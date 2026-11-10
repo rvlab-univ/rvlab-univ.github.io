@@ -5,25 +5,26 @@ import PageHeader from '../components/PageHeader.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { attachment } from '../lib/attachments';
 import { getPage } from '../lib/content';
+import { pad } from '../lib/format';
 
 // 내용 수정: src/content/projects.md
 const page = await getPage('projects');
 const projects = await Promise.all(
 	(await getCollection('projects'))
 		.sort((a, b) => b.data.no - a.data.no)
-		.map(async (p) => ({ data: p.data, Content: (await render(p)).Content })),
+		.map(async (p) => ({ id: p.id, data: p.data, Content: (await render(p)).Content })),
 );
 ---
 
 <BaseLayout title={page.data.title} description={page.data.description}>
-	<PageHeader page={page} eyebrow="Projects" />
+	<PageHeader page={page} />
 
 	<ol class="projects">
 		{
-			projects.map(({ data, Content }) => (
-				<li class="card project">
+			projects.map(({ id, data, Content }) => (
+				<li class="card project" id={id}>
 					<div class="no" aria-hidden="true">
-						{String(data.no).padStart(2, '0')}
+						{pad(data.no)}
 					</div>
 					<div>
 						<h2>
@@ -68,24 +69,23 @@ const projects = await Promise.all(
 		align-self: flex-start;
 		width: 260px;
 		height: auto;
-		border-radius: 10px;
 	}
 	.body :global(img) {
 		display: block;
 		max-width: min(100%, 560px);
 		margin: 1rem 0;
-		border-radius: 10px;
 	}
 	.no {
 		flex: none;
-		color: var(--accent);
-		font-size: 1.8rem;
-		font-weight: 700;
-		line-height: 1.2;
-		opacity: 0.5;
+		padding-top: 0.45rem;
+		color: var(--detect); /* 번호는 탐지 초록 */
+		font-family: var(--font-mono);
+		font-size: 0.85rem;
+		font-weight: 500;
 	}
 	h2 {
-		font-size: 1.15rem;
+		font-size: 1.3rem;
+		line-height: 1.4;
 	}
 	h2 .badge {
 		margin-left: 0.5rem;

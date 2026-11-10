@@ -29,7 +29,7 @@ const info = await getPage('publications');
 ---
 
 <BaseLayout title={`${category.label} 논문`} description={`RV LAB ${category.label} 논문 목록`}>
-	<PageHeader page={info} title={category.label} eyebrow={`Publications · ${category.en}`} />
+	<PageHeader page={info} title={category.label} />
 	<PublicationList
 		page={page}
 		baseUrl={`/publications/${category.key}`}

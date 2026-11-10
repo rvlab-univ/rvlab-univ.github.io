@@ -22,7 +22,7 @@ const info = await getPage('news');
 ---
 
 <BaseLayout title={info.data.title} description={info.data.description}>
-	<PageHeader page={info} eyebrow="News" />
+	<PageHeader page={info} />
 
 	<ul class="grid">
 		{

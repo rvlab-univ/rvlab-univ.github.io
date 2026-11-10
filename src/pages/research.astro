@@ -16,17 +16,15 @@ const statements = await Promise.all(
 ---
 
 <BaseLayout title={page.data.title} description={page.data.description}>
-	<PageHeader page={page} eyebrow="Research" />
+	<PageHeader page={page} />
 
 	{
 		areas.map(({ area, Content }) => (
 			<section class="pillar" id={area.id}>
 				<div class="intro">
 					<div>
-						<p class="en">
-							{area.data.icon} {area.data.titleEn}
-						</p>
 						<h2>{area.data.title}</h2>
+						{area.data.titleEn && <p class="en">{area.data.titleEn}</p>}
 						<div class="prose">
 							<Content />
 						</div>
@@ -43,9 +41,7 @@ const statements = await Promise.all(
 					{area.data.topics.map((topic) => (
 						<li class="card topic">
 							{topic.video && <VideoThumb id={topic.video} title={topic.title} />}
-							<h3>
-								{area.data.titleEn} – {topic.title}
-							</h3>
+							<h3>{topic.title}</h3>
 							<p>{topic.summary}</p>
 							<p class="paper">
 								{topic.status && <span class="status">{topic.status}</span>}
@@ -61,7 +57,7 @@ const statements = await Promise.all(
 	{
 		statements.map(({ s, Content }) => (
 			<section class="statement card prose">
-				<p class="eyebrow">Research Statement</p>
+				<p class="kicker">Research Statement</p>
 				<h2>{s.data.title}</h2>
 				<Content />
 			</section>
@@ -84,12 +80,15 @@ const statements = await Promise.all(
 		margin-bottom: 1rem;
 	}
 	.en {
+		margin: -0.25rem 0 1rem;
+		color: var(--text-muted);
+		font-size: 0.95rem;
+	}
+	.kicker {
 		margin: 0;
-		color: var(--accent);
-		font-size: 0.85rem;
-		font-weight: 700;
-		letter-spacing: 0.05em;
-		text-transform: uppercase;
+		color: var(--text);
+		font-size: 0.9rem;
+		font-weight: 500;
 	}
 	.keywords {
 		display: flex;
@@ -131,8 +130,8 @@ const statements = await Promise.all(
 	}
 	.status {
 		margin-right: 0.3rem;
-		color: #b7791f;
-		font-weight: 700;
+		color: var(--warn);
+		font-weight: 500;
 	}
 	.statement {
 		margin-top: 4.5rem;
@@ -141,7 +140,6 @@ const statements = await Promise.all(
 		display: block;
 		max-width: min(100%, 720px);
 		margin: 1rem auto;
-		border-radius: 10px;
 	}
 	@media (max-width: 760px) {
 		.intro {

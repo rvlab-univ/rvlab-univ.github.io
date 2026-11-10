@@ -65,6 +65,8 @@ https://rvlab-univ.github.io 에 GitHub Pages로 배포됩니다. 이 문서는 
   - 나머지 문단 → 분야 소개
 - `### 대표 연구 제목` 아래: YouTube 주소 줄 = 영상, 일반 문단 = 한 줄 요약, `> 인용` 줄 = 논문.
   심사 중이면 인용 앞에 `Under Review · `를 붙인다.
+- `###` 바로 아래에 사진만 있는 줄(`![설명](attachments/research/a.jpg)`)을 두면 그 주제의 대표 사진이 되고,
+  그 바로 아래 `탐지:` 줄을 쓰면 첫 화면에 박스와 함께 돌아가며 나온다 (형식은 `projects.md`의 "탐지:" 설명과 같다).
 - `## Research Statement: 제목` 절은 페이지 맨 아래 카드로 나오며 본문은 자유 Markdown이다.
 
 ### `src/content/projects.md` — 연구 과제
@@ -85,6 +87,15 @@ https://rvlab-univ.github.io 에 GitHub Pages로 배포됩니다. 이 문서는 
 `Project Lead`는 해당될 때만 쓴다. 번호가 큰 순서(최신)로 표시된다.
 메타 줄 다음에 사진만 있는 줄(`![설명](attachments/projects/a.jpg)`)을 두면 과제 대표 이미지가 되고,
 본문 중간의 사진은 그 자리에 그대로 나온다.
+
+대표 사진 바로 아래에 `탐지:` 줄을 쓰면 첫 화면에 사진이 박스와 함께 돌아가며 나온다 (`research.md`의 주제도 같다, 문서 순서대로).
+
+```md
+탐지: biped robot (22, 22, 29, 70) · leg (28, 57, 18, 35) · foot 0.61 (29, 85, 9, 7)
+```
+
+`이름 [점수] (왼쪽, 위, 너비, 높이)`이고 좌표는 사진 기준 %다. 점수를 비우면 적은 순서대로 0.98에서 0.55까지 고르게 매겨지므로
+중요한 것부터 적는다. 사진 밖으로 나가는 박스나 사진 없는 `탐지:` 줄은 빌드 에러다.
 
 ### `src/content/news/*.md` — 소식
 
@@ -108,7 +119,7 @@ category: 세미나
 
 ### `src/content/home.md` — 첫 화면
 
-- `# 제목` 아래 문단 = 첫 화면 소개 문구.
+- `# 제목` = 첫 화면의 큰 제목, 그 아래 문단 = 소개 문구. (헤더·탭 제목의 사이트 이름은 `src/consts.ts`)
 - 그 아래 `##` 절은 **전부, 쓴 순서대로** 홈 아래쪽에 나온다. 제목 글자는 자유이고, 종류는 **내용 모양**으로 정해진다.
   - 사진만 있는 절 → 로고 목록 (`![기관 이름](attachments/collaborators/파일)` 한 줄에 하나)
   - 그 밖의 절 → 글 상자. `>` 줄은 작은 공지, 맨 끝 줄에 링크 하나만 있으면 버튼(`[메일 보내기](mailto:…)`)
@@ -130,8 +141,10 @@ category: 세미나
 - 빌드 때 자동으로 크기 조정·webp 변환되므로 원본을 넣어도 되지만, 한 장 10MB 이하로 둔다.
 - 경로가 틀리면 빌드가 ``[ImageNotFound] Could not find requested image `경로` ``로 실패한다. 사진 파일을 지어내거나 외부 URL을 핫링크하지 않는다.
 
-- 로고: `attachments/logo.png` (정사각형). 헤더 로고, 브라우저 탭 아이콘, 링크 공유 기본 이미지로 쓰인다. 같은 이름으로 바꾸면 전부 바뀐다.
-  현재 파일은 GitHub 조직 `rvlab-univ`의 프로필 이미지다.
+- 로고는 세 파일이다 (모두 정사각형, 같은 이름으로 바꾸면 해당 자리가 바뀐다).
+  - `attachments/logo-transparent.svg`: 투명 배경, 톱니가 회전. 헤더 로고와 첫 화면 제목 뒤에 흐리게 깔리는 로고.
+  - `attachments/logo.svg`: 같은 그림의 검은 배경 버전 (보관용, 화면에서는 쓰지 않음).
+  - `attachments/logo.png`: 브라우저 탭 아이콘, 링크 공유 기본 이미지. GitHub 조직 `rvlab-univ`의 프로필 이미지다.
 
 ### Markdown 작성 시 주의 (한국어)
 
@@ -220,8 +233,8 @@ category: 세미나
 ### 3. 기존 내용이 그대로인지 확인한다
 
 - 고치기 **전과 후**에 빌드해서 기존 항목 수가 같은지 비교한다. 예:
-  `grep -o 'class="pub"' dist/publications/index.html dist/publications/*/index.html | wc -l` (논문 31),
-  `grep -o 'class="card person"' dist/members/index.html | wc -l` (학생 16),
+  `cat dist/publications/index.html dist/publications/[0-9]*/index.html | grep -o 'class="pub"' | wc -l` (논문 31),
+  `grep -o '<li class="person"' dist/members/index.html | wc -l` (학생 16),
   `grep -o 'class="card project"' dist/projects/index.html | wc -l` (과제 9).
 - 새 형식으로 실제 항목을 하나 넣어 화면에 나오는지, 일부러 틀리게 써서 에러 메시지가 알아듣기 쉬운지 확인한다.
   시험용으로 넣은 내용과 파일은 확인 후 원래대로 돌린다 (`cmp`나 `git diff`로 원상복구 확인).

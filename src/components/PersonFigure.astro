@@ -1,0 +1,75 @@
+---
+// 구성원 한 명: 3:4 사진 + 이름 + 연구 주제. 사진이 있으면 마우스를 올렸을 때 얼굴 탐지 박스가 뜬다.
+// 사진: attachments/members/<이름>.jpg (없으면 이름 첫 글자)
+import { Image } from 'astro:assets';
+import { memberPhoto } from '../lib/attachments';
+import { decorScore } from '../lib/format';
+
+interface Props {
+	name: string;
+	research: string[];
+}
+const { name, research } = Astro.props;
+const photo = memberPhoto(name);
+const score = decorScore(name);
+---
+
+<figure class="person">
+	{
+		photo ? (
+			<div class="ph face">
+				<Image src={photo} alt={`${name} 사진`} width={360} height={480} fit="cover" loading="lazy" />
+				<div class="face-box" aria-hidden="true">
+					<span class="det-label">
+						{name} {score.toFixed(2)}
+					</span>
+				</div>
+			</div>
+		) : (
+			<div class="ph initial" aria-hidden="true">
+				{name.slice(0, 1)}
+			</div>
+		)
+	}
+	<figcaption>
+		{name}
+		{research.length > 0 && <span>{research.join(', ')}</span>}
+	</figcaption>
+</figure>
+
+<style>
+	.person {
+		margin: 0;
+	}
+	.ph {
+		aspect-ratio: 3 / 4;
+		background: var(--bg-alt);
+	}
+	.ph :global(img) {
+		display: block;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		object-position: center top;
+	}
+	.initial {
+		display: grid;
+		place-items: center;
+		color: var(--text-muted);
+		font-size: 2.5rem;
+		font-weight: 700;
+	}
+	figcaption {
+		margin-top: 8px;
+		font-size: 0.9rem;
+		font-weight: 500;
+		line-height: 1.4;
+	}
+	figcaption span {
+		display: block;
+		margin-top: 2px;
+		color: var(--text-muted);
+		font-size: 0.8rem;
+		font-weight: 400;
+	}
+</style>

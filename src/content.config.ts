@@ -1,5 +1,6 @@
 import { defineCollection } from 'astro:content';
 import { z } from 'astro/zod';
+import { PUBLICATION_CATEGORIES } from './consts';
 import { markdownLoader } from './lib/markdown-loader';
 import {
 	parseHome,
@@ -9,6 +10,7 @@ import {
 	parseProjects,
 	parsePublications,
 	parseResearch,
+	ROLES,
 } from './lib/parsers';
 
 // 내용은 src/content/ 의 Markdown 문서에서 작성합니다. 작성 규칙은 각 문서 맨 위 주석 참고.
@@ -38,6 +40,11 @@ const home = defineCollection({
 	}),
 });
 
+// 대표 사진 위 탐지 박스 (projects.md, research.md의 "탐지:" 줄)
+const detections = z
+	.array(z.object({ name: z.string(), score: z.number(), box: z.tuple([z.number(), z.number(), z.number(), z.number()]) }))
+	.default([]);
+
 const research = defineCollection({
 	loader: markdownLoader({ name: 'research', files: [`${dir}/research.md`], parse: parseResearch }),
 	schema: z.object({
@@ -57,6 +64,9 @@ const research = defineCollection({
 					paper: z.string(),
 					video: z.string().optional(),
 					status: z.string().optional(),
+					image: z.string().optional(),
+					imageAlt: z.string().optional(),
+					detections,
 				}),
 			)
 			.default([]),
@@ -81,7 +91,7 @@ const publications = defineCollection({
 		authors: z.string(),
 		venue: z.string(),
 		year: z.number(),
-		category: z.enum(['intl-journal', 'intl-conference', 'domestic-journal', 'domestic-conference']),
+		category: z.enum(PUBLICATION_CATEGORIES.map((c) => c.key)),
 		underReview: z.boolean(),
 		award: z.string().optional(),
 		awardUrl: z.string().optional(),
@@ -95,7 +105,7 @@ const members = defineCollection({
 	schema: z.object({
 		name: z.string(),
 		nameEn: z.string().optional(),
-		role: z.enum(['professor', 'phd', 'ms', 'undergrad', 'alumni']),
+		role: z.enum(ROLES),
 		group: z.string(),
 		team: z.string().optional(),
 		teamDesc: z.string().optional(),
@@ -118,6 +128,8 @@ const projects = defineCollection({
 		lead: z.boolean(),
 		image: z.string().optional(),
 		imageAlt: z.string().optional(),
+		summary: z.string().optional(),
+		detections,
 	}),
 });
 
