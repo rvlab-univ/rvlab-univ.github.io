@@ -1,8 +1,9 @@
 ---
 // 첫 화면: 왼쪽 글(slot) + 오른쪽 과제 대표 사진. 사진 위 박스는 projects.md의 "탐지:" 줄(그 과제의 주요 구성요소).
 // "탐지:" 줄을 적은 과제만 돌아가며 나온다. 하나도 없으면 가장 최근 과제의 대표 사진만 박스 없이 보여준다.
-// 임계선은 0.50에서 오른쪽으로 천천히 움직이며 박스를 걸러내고, 끝에 닿으면 다음 과제로 넘어간다.
-// 번호·‹ ›로 넘길 수 있고, 손을 떼고 2.5초 뒤 다시 움직인다. '동작 줄이기'면 자동 조정 없음.
+// 임계선은 0.50에서 오른쪽으로 천천히 움직이며 박스를 걸러내고, 가장 높은 점수에 닿으면(박스 하나는 남음) 다음 과제로 넘어간다.
+// 번호·‹ ›로 넘길 수 있고, 손을 떼고 2.5초 뒤 다시 움직인다. 일시정지 버튼으로 멈추면 다시 누를 때까지 멈춘다 (WCAG 2.2.2).
+// '동작 줄이기'면 멈춘 채로 시작한다.
 import type { ImageMetadata } from 'astro';
 import { Image } from 'astro:assets';
 
@@ -33,6 +34,9 @@ const hasDetections = slides.some((s) => s.detections.length);
 							confidence ≥ <b data-thv>0.50</b>
 						</span>
 						<span data-count />
+						<button type="button" class="play" data-play aria-pressed="false">
+							일시정지
+						</button>
 					</div>
 					<div class="strip">
 						<div class="shade" data-shade />
@@ -119,7 +123,8 @@ const hasDetections = slides.some((s) => s.detections.length);
 		const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 		let cur = 0,
 			val = LO,
-			paused = reduce,
+			stopped = reduce, // 일시정지 버튼으로 멈춘 상태 (손을 떼도 다시 움직이지 않음)
+			paused = stopped,
 			holdUntil = 0,
 			last = 0,
 			resume = 0;
@@ -127,6 +132,14 @@ const hasDetections = slides.some((s) => s.detections.length);
 		const strip = conf && $('.strip'),
 			input = conf && $<HTMLInputElement>('input');
 		const pct = (v: number) => ((v - LO) / (1 - LO)) * 100;
+		// 임계선이 멈출 곳: 그 과제의 가장 높은 점수 (박스가 모두 사라지지 않게)
+		const top = () => Math.max(LO, ...[...slides[cur].querySelectorAll<HTMLElement>('.box')].map((b) => Number(b.dataset.s)));
+		const play = root.querySelector<HTMLButtonElement>('[data-play]');
+		const setPlay = () => {
+			if (!play) return;
+			play.setAttribute('aria-pressed', String(stopped));
+			play.textContent = stopped ? '재생' : '일시정지';
+		};
 
 		function bars() {
 			if (!strip) return;
@@ -171,7 +184,7 @@ const hasDetections = slides.some((s) => s.detections.length);
 		const touch = () => {
 			paused = true;
 			clearTimeout(resume);
-			resume = window.setTimeout(() => (paused = reduce), RESUME);
+			resume = window.setTimeout(() => (paused = stopped), RESUME);
 		};
 		const go = (i: number) => {
 			val = LO;
@@ -189,6 +202,13 @@ const hasDetections = slides.some((s) => s.detections.length);
 				apply();
 			});
 			for (const e of ['pointerdown', 'focus', 'keydown']) input.addEventListener(e, touch);
+			play?.addEventListener('click', () => {
+				stopped = !stopped;
+				clearTimeout(resume);
+				paused = stopped;
+				setPlay();
+			});
+			setPlay();
 		}
 		if (pager) {
 			pager.hidden = false;
@@ -208,10 +228,11 @@ const hasDetections = slides.some((s) => s.detections.length);
 			const dt = last ? t - last : 0;
 			last = t;
 			if (conf && !paused && t > holdUntil && !document.hidden) {
-				val = Math.min(HI, val + ((HI - LO) * dt) / SWEEP);
+				const end = top();
+				val = Math.min(end, val + ((HI - LO) * dt) / SWEEP);
 				if (input) input.value = String(val);
 				apply();
-				if (val >= HI) {
+				if (val >= end) {
 					holdUntil = t + HOLD + 400; // 넘기는 동안(0.25초) 다시 걸리지 않게
 					window.setTimeout(() => {
 						if (paused || slides.length < 2) {
@@ -352,17 +373,32 @@ const hasDetections = slides.some((s) => s.detections.length);
 	}
 	.conf-head {
 		display: flex;
-		justify-content: space-between;
+		align-items: center;
+		gap: 12px;
 		margin-bottom: 8px;
 		color: var(--text-muted);
 	}
 	.conf-head b,
-	.conf-head span:last-child {
+	.conf-head [data-count] {
 		color: var(--text);
 		font-weight: 500;
 	}
 	.conf-head b {
 		color: var(--focus);
+	}
+	.conf-head > span:first-child {
+		margin-right: auto;
+	}
+	.play {
+		padding: 4px 8px;
+		border: 1px solid var(--border);
+		background: var(--card);
+		color: var(--text);
+		font: inherit;
+		cursor: pointer;
+	}
+	.play:hover {
+		border-color: var(--text);
 	}
 	.strip {
 		position: relative;
