@@ -21,7 +21,8 @@ const sections = await Promise.all(
 		.map(async (s) => ({ ...s.data, Content: (await render(s)).Content })),
 );
 const areas = await getResearchAreas();
-const highlights = areas.flatMap((a) => a.data.topics);
+// 연구 카드: 연구 분야의 대표 연구(### 주제)들, 문서 순서. 영상은 그 자리에서 재생되고, 대표 사진이 있으면 썸네일로 쓴다
+const topics = areas.flatMap((a) => a.data.topics.map((t) => ({ ...t, area: a.data.title, href: `/research#${a.id}` })));
 const news = (await getCollection('news'))
 	.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
 	.slice(0, 3);
@@ -41,7 +42,7 @@ const candidates = [
 ].flatMap((c) => (c.image ? [{ ...c, image: c.image, alt: c.alt ?? c.title }] : []));
 const detected = candidates.filter((c) => c.detections.length);
 const slides = (detected.length ? detected : candidates.slice(0, 1)).map((c, i) => ({ ...c, no: i + 1 }));
-const HOME_PROJECTS = 3;
+const HOME_PROJECTS = 6;
 
 // 구성원 (members.md): 지도교수·졸업생을 뺀 학생, 문서 순서. 팀 버튼은 팀이 둘 이상일 때만
 const students = (await getCollection('members'))
@@ -83,60 +84,67 @@ const pad = (n: number) => String(n).padStart(2, '0');
 		</ul>
 	</section>
 
+	<section>
+		<div class="section-head">
+			<h2>프로젝트</h2>
+			<a href="/projects">전체 보기</a>
+		</div>
+		<ul class="project-grid">
+			{
+				projects.slice(0, HOME_PROJECTS).map((p) => (
+					<li>
+						<a href={`/projects#${p.id}`}>
+							{p.cover && (
+								<Image
+									src={p.cover}
+									alt={p.imageAlt ?? ''}
+									widths={[400, 640]}
+									sizes="(max-width: 760px) 100vw, 400px"
+									loading="lazy"
+								/>
+							)}
+							<span class="no det-label">{pad(p.no)}</span>
+							<h3>{p.title}</h3>
+						</a>
+						<p>
+							{p.funder} · {p.period}
+						</p>
+					</li>
+				))
+			}
+		</ul>
+	</section>
+
 	{
-		highlights.length > 0 && (
+		topics.length > 0 && (
 			<section>
 				<div class="section-head">
-					<h2>프로젝트</h2>
+					<h2>연구</h2>
 					<a href={LAB.youtube} target="_blank" rel="noopener">
 						유튜브 채널
 					</a>
 				</div>
-				<ul class="highlights">
-					{highlights.map((h) => (
-						<li>
-							{h.video && <VideoThumb id={h.video} title={h.title} />}
-							<h3>{h.title}</h3>
-							<p>{h.summary}</p>
+				<ol class="stack">
+					{topics.map((t, i) => (
+						<li class="stack-card">
+							<div class="stack-text">
+								<span class="no det-label">{pad(i + 1)}</span>
+								<h3>{t.title}</h3>
+								<p class="meta">{t.area}</p>
+								{t.summary && <p class="summary">{t.summary}</p>}
+								<a href={t.href}>자세히</a>
+							</div>
+							{t.video ? (
+								<VideoThumb id={t.video} title={t.title} poster={attachment(t.image)} />
+							) : (
+								attachment(t.image) && <Image src={attachment(t.image)!} alt={t.imageAlt ?? ''} widths={[480, 720, 960]} sizes="(max-width: 760px) 100vw, 640px" loading="lazy" />
+							)}
 						</li>
 					))}
-				</ul>
+				</ol>
 			</section>
 		)
 	}
-
-	<section>
-		<div class="section-head">
-			<h2>연구</h2>
-			<a href="/projects">전체 보기</a>
-		</div>
-		<ol class="stack">
-			{
-				projects.slice(0, HOME_PROJECTS).map((p) => (
-					<li class="stack-card">
-						<div class="stack-text">
-							<span class="no det-label">{pad(p.no)}</span>
-							<h3>{p.title}</h3>
-							<p class="meta">
-								{p.funder} · {p.period}
-							</p>
-							{p.summary && <p class="summary">{p.summary}</p>}
-							<a href={`/projects#${p.id}`}>자세히</a>
-						</div>
-						{p.cover && (
-							<Image
-								src={p.cover}
-								alt={p.imageAlt ?? ''}
-								widths={[480, 720, 960]}
-								sizes="(max-width: 760px) 100vw, 640px"
-								loading="lazy"
-							/>
-						)}
-					</li>
-				))
-			}
-		</ol>
-	</section>
 
 	{
 		students.length > 0 && (
@@ -301,28 +309,47 @@ const pad = (n: number) => String(n).padStart(2, '0');
 		font-size: 0.9rem;
 	}
 
-	.highlights {
+	/* 프로젝트: 대표 사진 격자 */
+	.project-grid {
 		display: grid;
 		grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
 		gap: 36px 24px;
+		margin: 0;
+		padding: 0;
+		list-style: none;
 	}
-	.highlights h3 {
-		margin: 14px 0 4px;
+	.project-grid a {
+		color: var(--text);
+		text-decoration: none;
+	}
+	.project-grid a:hover h3 {
+		text-decoration: underline;
+	}
+	.project-grid :global(img) {
+		display: block;
+		width: 100%;
+		aspect-ratio: 16 / 9;
+		margin-bottom: 14px;
+		object-fit: cover;
+		background: var(--card);
+	}
+	.project-grid h3 {
+		margin: 4px 0;
 		font-size: 1.05rem;
+		line-height: 1.4;
 	}
-	.highlights p {
+	.project-grid p {
 		margin: 0;
 		color: var(--text-muted);
-		font-size: 0.92rem;
+		font-size: 0.9rem;
 	}
 
-	/* 프로젝트: 스크롤하면 카드가 위로 쌓인다 */
+	/* 연구: 스크롤하면 카드가 위로 쌓인다. 오른쪽 영상은 누르면 그 자리에서 재생 */
 	.stack-card {
 		position: sticky;
 		top: 96px;
 		display: grid;
 		grid-template-columns: 5fr 6fr;
-		min-height: 360px;
 		margin-bottom: 28px;
 		border: 1px solid var(--border);
 		background: var(--card);
@@ -356,9 +383,12 @@ const pad = (n: number) => String(n).padStart(2, '0');
 		color: var(--text);
 		font-weight: 500;
 	}
-	.stack-card :global(img) {
+	/* 오른쪽 사진·영상은 16:9. 글이 더 길면 그만큼 늘어나고 사진은 잘린다 */
+	.stack-card > :global(img),
+	.stack-card > :global(.video) {
 		width: 100%;
-		height: 100%;
+		height: auto;
+		aspect-ratio: 16 / 9;
 		object-fit: cover;
 		background: #111;
 	}
@@ -510,9 +540,9 @@ const pad = (n: number) => String(n).padStart(2, '0');
 			top: 72px;
 			grid-template-columns: 1fr;
 		}
-		.stack-card :global(img) {
+		.stack-card > :global(img),
+		.stack-card > :global(.video) {
 			order: -1;
-			height: 200px;
 		}
 		.stack-text {
 			padding: 24px;
