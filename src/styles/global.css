@@ -1,26 +1,28 @@
 /* RV Lab 전역 스타일 (Astro blog 템플릿 기반) */
 
 :root {
-	/* RV LAB 디자인 토큰 = e-calm 목업 그대로. 색·서체·모서리는 여기서만 정한다.
-	   밝은 화면 하나뿐이다 (다크 모드 없음: 시스템이 다크여도 같은 색) */
-	color-scheme: light;
-	--paper: #f2f3f1; /* 바탕 */
-	--ink: #111214; /* 글자, 먹색 버튼·상자 */
-	--mute: #62666e; /* 보조 글자. 목업은 #6e727a였으나 배경 대비 4.3:1이라 한 단계 진하게 (4.5:1 이상) */
-	--line: #d9dbd7; /* 테두리 */
+	/* RV LAB 디자인 토큰. 색·서체·모서리는 여기서만 정한다.
+	   어두운 화면 하나뿐이다 (교수님 요청, 2026-11). e-calm 목업의 밝은 색을 뒤집었다:
+	   --ink = 글자·강조 상자(밝은 색), --paper = 바탕(어두운 색) */
+	color-scheme: dark;
+	--paper: #0e0f11; /* 바탕 */
+	--ink: #ecede9; /* 글자, 강조 버튼·상자 */
+	--mute: #9a9ea6; /* 보조 글자. 바탕 대비 7:1 */
+	--line: #2a2c31; /* 테두리 */
 	--detect: #19a974; /* 탐지 박스, 번호, 초록 버튼 */
 	--focus: #ff5b3a; /* 따라오는 박스, 임계선, 현재 메뉴, 키보드 초점 */
+	--warn: #ff8a6e; /* 심사 중·수상 글자 (주황 계열, 바탕 대비 확보) */
 
 	/* 아래는 기존 코드가 쓰는 이름. 위 색으로만 정한다 */
 	--text: var(--ink);
 	--text-muted: var(--mute);
 	--bg: var(--paper);
-	--bg-alt: #e6e8e4;
+	--bg-alt: #17181b;
 	--border: var(--line);
-	--card: #ffffff;
-	--accent: var(--ink); /* 링크·강조 글자는 먹색 (목업에 초록 글자는 없다) */
-	--accent-dark: #2b2d31;
-	--accent-soft: #e6e8e4; /* 분류 표시 바탕 */
+	--card: #141518;
+	--accent: var(--ink);
+	--accent-dark: #ffffff; /* 링크 hover */
+	--accent-soft: #23252a; /* 분류 표시 바탕 */
 	--shadow: none;
 	--radius: 0;
 	--max-width: 1200px;

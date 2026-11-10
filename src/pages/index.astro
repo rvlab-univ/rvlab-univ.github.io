@@ -353,7 +353,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
 		margin-bottom: 28px;
 		border: 1px solid var(--border);
 		background: var(--card);
-		box-shadow: 0 -10px 30px rgb(17 18 20 / 0.06);
+		box-shadow: 0 -10px 30px rgb(0 0 0 / 0.5);
 	}
 	.stack-text {
 		display: flex;
@@ -493,11 +493,11 @@ const pad = (n: number) => String(n).padStart(2, '0');
 		background: #fff;
 		object-fit: contain;
 	}
-	/* 글 상자: 먹색 바탕. > 줄은 작은 공지, 끝에 링크 하나만 있으면 초록 버튼 */
+	/* 글 상자: 카드 바탕. > 줄은 작은 공지, 끝에 링크 하나만 있으면 초록 버튼 */
 	.text {
 		padding: 56px;
-		background: var(--ink);
-		color: var(--paper);
+		border: 1px solid var(--border);
+		background: var(--card);
 	}
 	.text > h2 {
 		margin-bottom: 12px;
@@ -514,7 +514,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
 		margin: 0 0 24px;
 		padding: 0;
 		border: 0;
-		color: color-mix(in srgb, var(--paper) 65%, transparent);
+		color: var(--text-muted);
 		font-size: 0.9rem;
 	}
 	.text .body :global(p:last-child:has(> a:only-child)) {
