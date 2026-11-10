@@ -68,7 +68,7 @@ const hasDetections = slides.some((s) => s.detections.length);
 							/>
 							{s.detections.map((d) => (
 								<div
-									class="box"
+									class:list={['box', { in: d.box[1] < 6 }]}
 									data-s={d.score}
 									style={`left:${d.box[0]}%;top:${d.box[1]}%;width:${d.box[2]}%;height:${d.box[3]}%`}
 								>
@@ -315,6 +315,11 @@ const hasDetections = slides.some((s) => s.detections.length);
 		background: var(--detect);
 		color: #fff;
 		white-space: nowrap;
+	}
+	/* 사진 맨 위에 붙은 박스는 라벨이 사진 밖으로 나가지 않게 안쪽에 */
+	.box.in span {
+		top: -1.5px;
+		bottom: auto;
 	}
 
 	figcaption {
