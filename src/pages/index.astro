@@ -51,12 +51,17 @@ const students = (await getCollection('members'))
 	.map((m) => ({ ...m.data, team: m.data.team ?? m.data.group }));
 const teams = [...Map.groupBy(students, (m) => m.team)].map(([name, people]) => ({ name, count: people.length }));
 const pad = (n: number) => String(n).padStart(2, '0');
+// 제목 뒤에 흐리게 까는 로고 (톱니가 회전함). 파일이 없으면 생략
+const mark = attachment('logo-transparent.svg');
 ---
 
 <BaseLayout description={home.data.description}>
 	<section slot="hero" class="hero">
 		<HeroDetect slides={slides}>
-			<h1>{LAB.fullName}</h1>
+			<div class="title">
+				{mark && <Image class="mark" src={mark} width={480} height={480} alt="" loading="eager" />}
+				<h1>{LAB.fullName}</h1>
+			</div>
 			<div class="lead">
 				<Lead />
 			</div>
@@ -252,13 +257,31 @@ const pad = (n: number) => String(n).padStart(2, '0');
 
 <style>
 	.hero {
+		overflow-x: clip; /* 제목 뒤 로고가 좁은 화면에서 가로로 넘치지 않게 */
 		max-width: var(--max-width);
 		margin: 0 auto;
 		padding: 56px 1rem 96px; /* main 과 같은 좌우 여백 */
 	}
+	/* 제목 뒤 로고: 제목 글자 크기의 3.5배, 흐리게. 사진 칸에 닿지 않게 오른쪽을 조금만 넘긴다 */
+	.title {
+		--h1: clamp(2.75rem, 6vw, 5.25rem);
+		position: relative;
+		isolation: isolate;
+	}
+	.title :global(.mark) {
+		position: absolute;
+		z-index: -1;
+		top: 50%;
+		right: -20px;
+		width: calc(var(--h1) * 3.5);
+		height: auto;
+		transform: translateY(-50%);
+		opacity: 0.18;
+		pointer-events: none;
+	}
 	.hero h1 {
 		margin: 0 0 20px;
-		font-size: clamp(2.75rem, 6vw, 5.25rem);
+		font-size: var(--h1);
 		line-height: 1.05;
 		letter-spacing: -0.02em;
 	}

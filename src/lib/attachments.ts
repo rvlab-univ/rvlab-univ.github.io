@@ -2,7 +2,7 @@ import type { ImageMetadata } from 'astro';
 
 // src/content/attachments/ 아래의 모든 이미지 (빌드 때 자동으로 크기 조정·webp 변환)
 const images = import.meta.glob<{ default: ImageMetadata }>(
-	'/src/content/attachments/**/*.{jpg,jpeg,png,webp,avif,gif,JPG,JPEG,PNG}',
+	'/src/content/attachments/**/*.{jpg,jpeg,png,webp,avif,gif,svg,JPG,JPEG,PNG}',
 	{ eager: true },
 );
 

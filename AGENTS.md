@@ -141,8 +141,10 @@ category: 세미나
 - 빌드 때 자동으로 크기 조정·webp 변환되므로 원본을 넣어도 되지만, 한 장 10MB 이하로 둔다.
 - 경로가 틀리면 빌드가 ``[ImageNotFound] Could not find requested image `경로` ``로 실패한다. 사진 파일을 지어내거나 외부 URL을 핫링크하지 않는다.
 
-- 로고: `attachments/logo.png` (정사각형). 헤더 로고, 브라우저 탭 아이콘, 링크 공유 기본 이미지로 쓰인다. 같은 이름으로 바꾸면 전부 바뀐다.
-  현재 파일은 GitHub 조직 `rvlab-univ`의 프로필 이미지다.
+- 로고는 세 파일이다 (모두 정사각형, 같은 이름으로 바꾸면 해당 자리가 바뀐다).
+  - `attachments/logo-transparent.svg`: 투명 배경, 톱니가 회전. 헤더 로고와 첫 화면 제목 뒤에 흐리게 깔리는 로고.
+  - `attachments/logo.svg`: 같은 그림의 검은 배경 버전 (보관용, 화면에서는 쓰지 않음).
+  - `attachments/logo.png`: 브라우저 탭 아이콘, 링크 공유 기본 이미지. GitHub 조직 `rvlab-univ`의 프로필 이미지다.
 
 ### Markdown 작성 시 주의 (한국어)
 

@@ -4,8 +4,9 @@ import { LAB } from '../consts';
 import { attachment } from '../lib/attachments';
 import HeaderLink from './HeaderLink.astro';
 
-// 로고: src/content/attachments/logo.png (파일을 바꾸면 로고가 바뀜)
-const logo = attachment('logo.png');
+// 로고: src/content/attachments/logo-transparent.svg (투명 배경, 톱니가 회전함).
+// 검은 배경 버전 logo.svg, 탭 아이콘·공유 이미지용 logo.png 도 같은 곳에 둔다
+const logo = attachment('logo-transparent.svg');
 ---
 
 <header>
@@ -67,9 +68,11 @@ const logo = attachment('logo.png');
 		width: 36px;
 		height: 36px;
 		border-radius: 0;
-		object-fit: cover;
+		object-fit: contain;
+	}
+	span.logo {
 		background: var(--accent);
-		color: #fff;
+		color: var(--paper);
 		font-weight: 700;
 		font-size: 0.9rem;
 	}
