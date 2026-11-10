@@ -297,7 +297,8 @@ export function parseProjects(doc: Doc): Entry[] {
 }
 
 // 탐지: LiDAR 0.93 (40, 0, 8, 12) · stereo camera (16, 9, 8, 7)
-// 이름 [점수] (왼쪽, 위, 너비, 높이) — 좌표는 사진 기준 %. 점수를 비우면 적힌 순서대로 0.98부터 0.08씩 낮춘다
+// 이름 [점수] (왼쪽, 위, 너비, 높이) — 좌표는 사진 기준 %. 점수를 비우면 적힌 순서대로 0.98에서 0.55까지 고르게 나눈다
+// (첫 화면의 점수 창이 0.5~1.0을 오가므로, 점수가 고르게 퍼져야 어느 구간에서든 박스가 보인다)
 type Detection = { name: string; score: number; box: [number, number, number, number] };
 function parseDetections(doc: Doc, node: Doc['root']['children'][number], line: string): Detection[] {
 	const items = line.replace(/^탐지\s*:\s*/, '').split('·').map((t) => t.trim()).filter(Boolean);
@@ -308,7 +309,7 @@ function parseDetections(doc: Doc, node: Doc['root']['children'][number], line: 
 		const box = [m[3], m[4], m[5], m[6]].map(Number) as Detection["box"];
 		const [x, y, w, h] = box;
 		if (x + w > 100.5 || y + h > 100.5 || !w || !h) fail(doc, node, `"${item}" — 박스가 사진 밖으로 나갑니다. 좌표는 사진 기준 % (0~100)입니다`);
-		return { name: m[1].trim(), score: m[2] ? Number(m[2]) : Math.max(0.5, 0.98 - i * 0.08), box };
+		return { name: m[1].trim(), score: m[2] ? Number(m[2]) : +(0.98 - (i * 0.43) / Math.max(1, items.length - 1)).toFixed(2), box };
 	});
 }
 
