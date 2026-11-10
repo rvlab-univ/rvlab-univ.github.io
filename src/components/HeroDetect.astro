@@ -1,11 +1,13 @@
 ---
-// 첫 화면: 왼쪽 글(slot) + 오른쪽 과제 대표 사진. 사진 위 박스는 projects.md의 "탐지:" 줄(그 과제의 주요 구성요소).
-// "탐지:" 줄을 적은 과제만 돌아가며 나온다. 하나도 없으면 가장 최근 과제의 대표 사진만 박스 없이 보여준다.
+// 첫 화면: 왼쪽 글(slot) + 오른쪽 대표 사진. 사진 위 박스는 research.md 주제와 projects.md 과제의 "탐지:" 줄.
+// "탐지:" 줄을 적은 것만 문서 순서대로 돌아가며 나온다. 하나도 없으면 첫 대표 사진만 박스 없이 보여준다 (index.astro).
 // 점수 창(폭 0.20)이 0.5~1.0 사이를 오가며, 창 안에 든 점수의 박스만 보여준다 (슬라이딩 윈도우).
-// 창은 한쪽 끝까지 움직이고 1.4초 멈춘 뒤, 다음 과제로 넘어가 반대 방향으로 돌아온다 (계속 반복).
+// 창은 한쪽 끝까지 움직이고 1.4초 멈춘 뒤, 다음 사진으로 넘어가 반대 방향으로 돌아온다 (계속 반복).
 // 띠를 끌거나 번호·‹ ›로 넘기면 2.1초 멈췄다가 그 자리에서 다시 움직인다.
 import type { ImageMetadata } from 'astro';
 import { Image } from 'astro:assets';
+import type { CollectionEntry } from 'astro:content';
+import { pad } from '../lib/format';
 
 interface Slide {
 	no: number;
@@ -13,13 +15,12 @@ interface Slide {
 	href: string;
 	image: ImageMetadata;
 	alt: string;
-	detections: { name: string; score: number; box: [number, number, number, number] }[];
+	detections: CollectionEntry<'projects'>['data']['detections'];
 }
 interface Props {
 	slides: Slide[];
 }
 const { slides } = Astro.props;
-const pad = (n: number) => String(n).padStart(2, '0');
 const hasDetections = slides.some((s) => s.detections.length);
 ---
 
@@ -95,15 +96,15 @@ const hasDetections = slides.some((s) => s.detections.length);
 			{
 				slides.length > 1 && (
 					<span class="pager" data-pager hidden>
-						<button type="button" data-prev aria-label="이전 과제">
+						<button type="button" data-prev aria-label="이전 사진">
 							‹
 						</button>
 						{slides.map((s, i) => (
-							<button type="button" class="num det-label" data-go={i} aria-label={`${pad(s.no)}번 과제`}>
+							<button type="button" class="num det-label" data-go={i} aria-label={`${pad(s.no)}번 사진`}>
 								{pad(s.no)}
 							</button>
 						))}
-						<button type="button" data-next aria-label="다음 과제">
+						<button type="button" data-next aria-label="다음 사진">
 							›
 						</button>
 					</span>
@@ -121,7 +122,7 @@ const hasDetections = slides.some((s) => s.detections.length);
 	const SWEEP = 6000; // 한쪽 끝에서 다른 쪽 끝까지 걸리는 시간
 	const HOLD = 1400; // 끝에 닿은 뒤 멈춤
 	const RESUME = 2100; // 사람이 조작한 뒤 멈춤
-	const FADE = 250; // 과제를 넘길 때 사진이 사라졌다 나타나는 시간
+	const FADE = 250; // 다음 사진으로 넘길 때 흐렸다가 나타나는 시간
 
 	for (const root of document.querySelectorAll<HTMLElement>('[data-hero]')) {
 		const $ = <T extends HTMLElement>(s: string) => root.querySelector<T>(s)!;
@@ -137,7 +138,7 @@ const hasDetections = slides.some((s) => s.detections.length);
 		let c = LO; // 창 가운데
 		let dir = 1;
 		let waitUntil = 0; // 이 시각까지 멈춤
-		let advance = false; // 멈춤이 끝나면 다음 과제로
+		let advance = false; // 멈춤이 끝나면 다음 사진으로
 		let dragging = false;
 		const wait = (ms: number) => (waitUntil = performance.now() + ms);
 
@@ -308,7 +309,6 @@ const hasDetections = slides.some((s) => s.detections.length);
 		display: block;
 		width: 100%;
 		height: 100%;
-		border-radius: 0;
 	}
 	.box {
 		position: absolute;
@@ -346,7 +346,7 @@ const hasDetections = slides.some((s) => s.detections.length);
 		font-size: 15px;
 	}
 	.no {
-		color: var(--detect); /* 번호는 탐지 초록 (목업) */
+		color: var(--detect); /* 번호는 탐지 초록 */
 		padding-top: 3px;
 	}
 	/* 제목 길이가 달라도 높이가 그대로이게: 두 줄 자리를 늘 차지하고, 넘치면 말줄임 */

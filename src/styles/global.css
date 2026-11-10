@@ -2,29 +2,19 @@
 
 :root {
 	/* RV LAB 디자인 토큰. 색·서체·모서리는 여기서만 정한다.
-	   어두운 화면 하나뿐이다 (교수님 요청, 2026-11). e-calm 목업의 밝은 색을 뒤집었다:
-	   --ink = 글자·강조 상자(밝은 색), --paper = 바탕(어두운 색) */
+	   어두운 화면 하나뿐이다 (교수님 요청, 2026-11). 강조 버튼·상자는 글자색 바탕에 바탕색 글자로 뒤집는다 */
 	color-scheme: dark;
-	--paper: #0e0f11; /* 바탕 */
-	--ink: #ecede9; /* 글자, 강조 버튼·상자 */
-	--mute: #9a9ea6; /* 보조 글자. 바탕 대비 7:1 */
-	--line: #2a2c31; /* 테두리 */
+	--bg: #0e0f11; /* 바탕 */
+	--bg-alt: #17181b; /* 사진 없는 자리, 코드 */
+	--card: #141518; /* 카드 바탕 */
+	--text: #ecede9; /* 글자, 강조 버튼·상자 */
+	--text-muted: #9a9ea6; /* 보조 글자. 바탕 대비 7:1 */
+	--link-hover: #ffffff;
+	--tag-bg: #23252a; /* 분류 표시 바탕 */
+	--border: #2a2c31;
 	--detect: #19a974; /* 탐지 박스, 번호, 초록 버튼 */
 	--focus: #ff5b3a; /* 따라오는 박스, 임계선, 현재 메뉴, 키보드 초점 */
 	--warn: #ff8a6e; /* 심사 중·수상 글자 (주황 계열, 바탕 대비 확보) */
-
-	/* 아래는 기존 코드가 쓰는 이름. 위 색으로만 정한다 */
-	--text: var(--ink);
-	--text-muted: var(--mute);
-	--bg: var(--paper);
-	--bg-alt: #17181b;
-	--border: var(--line);
-	--card: #141518;
-	--accent: var(--ink);
-	--accent-dark: #ffffff; /* 링크 hover */
-	--accent-soft: #23252a; /* 분류 표시 바탕 */
-	--shadow: none;
-	--radius: 0;
 	--max-width: 1200px;
 }
 
@@ -77,10 +67,10 @@ h3 {
 }
 
 a {
-	color: var(--accent);
+	color: var(--text);
 }
 a:hover {
-	color: var(--accent-dark);
+	color: var(--link-hover);
 }
 
 p {
@@ -90,12 +80,10 @@ p {
 img {
 	max-width: 100%;
 	height: auto;
-	border-radius: 0;
 }
 
 code {
 	padding: 0.1em 0.35em;
-	border-radius: 0;
 	background: var(--bg-alt);
 	font-size: 0.9em;
 }
@@ -125,8 +113,8 @@ hr {
 .badge {
 	display: inline-block;
 	padding: 0.1rem 0.45rem;
-	background: var(--accent-soft);
-	color: var(--accent);
+	background: var(--tag-bg);
+	color: var(--text);
 	font-size: 0.78rem;
 	font-weight: 500;
 	white-space: nowrap;
@@ -199,7 +187,6 @@ hr {
 	position: relative;
 	display: block;
 	overflow: hidden;
-	border-radius: 0;
 	background: #000;
 	color: #fff;
 	text-decoration: none;
@@ -210,7 +197,6 @@ hr {
 	aspect-ratio: 16 / 9;
 	margin: 0;
 	object-fit: cover;
-	border-radius: 0;
 	transition: opacity 0.2s;
 }
 .yt:hover img {
@@ -277,13 +263,13 @@ hr {
 .btn {
 	display: inline-block;
 	padding: 12px 20px;
-	background: var(--ink);
-	color: var(--paper);
+	background: var(--text);
+	color: var(--bg);
 	font-weight: 500;
 	text-decoration: none;
 }
 .btn:hover {
-	background: var(--accent-dark);
+	background: var(--link-hover);
 	color: #fff;
 }
 

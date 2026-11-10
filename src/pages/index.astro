@@ -10,8 +10,9 @@ import { LAB } from '../consts';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { attachment } from '../lib/attachments';
 import { getPage, getResearchAreas, getSortedPublications } from '../lib/content';
+import { pad } from '../lib/format';
 
-// 내용 수정: src/content/home.md (소개 문구 + 아래쪽 ## 절들). 나머지 절은 다른 문서에서 자동으로 가져온다
+// 내용 수정: src/content/home.md (# 제목 + 소개 문구 + 아래쪽 ## 절들). 나머지 절은 다른 문서에서 자동으로 가져온다
 const home = await getPage('home');
 const { Content: Lead } = await render(home);
 // home.md 의 ## 절: 쓴 순서대로 전부 표시 (사진만 있으면 로고 목록, 아니면 글 상자)
@@ -22,7 +23,9 @@ const sections = await Promise.all(
 );
 const areas = await getResearchAreas();
 // 연구 카드: 연구 분야의 대표 연구(### 주제)들, 문서 순서. 영상은 그 자리에서 재생되고, 대표 사진이 있으면 썸네일로 쓴다
-const topics = areas.flatMap((a) => a.data.topics.map((t) => ({ ...t, area: a.data.title, href: `/research#${a.id}` })));
+const topics = areas.flatMap((a) =>
+	a.data.topics.map((t) => ({ ...t, area: a.data.title, href: `/research#${a.id}`, cover: attachment(t.image) })),
+);
 const news = (await getCollection('news'))
 	.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
 	.slice(0, 3);
@@ -35,14 +38,13 @@ const projects = (await getCollection('projects'))
 // 첫 화면: 대표 사진 아래 "탐지:" 줄을 적은 연구 주제(research.md)와 과제(projects.md), 문서 순서대로.
 // 하나도 없으면 대표 사진 하나만 박스 없이
 const candidates = [
-	...areas.flatMap((a) =>
-		a.data.topics.map((t) => ({ title: t.title, href: `/research#${a.id}`, image: attachment(t.image), alt: t.imageAlt, detections: t.detections })),
-	),
-	...projects.map((p) => ({ title: p.title, href: `/projects#${p.id}`, image: p.cover, alt: p.imageAlt, detections: p.detections })),
-].flatMap((c) => (c.image ? [{ ...c, image: c.image, alt: c.alt ?? c.title }] : []));
+	...topics,
+	...projects.map((p) => ({ ...p, href: `/projects#${p.id}` })),
+].flatMap(({ title, href, cover, imageAlt, detections }) =>
+	cover ? [{ title, href, image: cover, alt: imageAlt ?? title, detections }] : [],
+);
 const detected = candidates.filter((c) => c.detections.length);
 const slides = (detected.length ? detected : candidates.slice(0, 1)).map((c, i) => ({ ...c, no: i + 1 }));
-const HOME_PROJECTS = 6;
 
 // 구성원 (members.md): 지도교수·졸업생을 뺀 학생, 문서 순서. 팀 버튼은 팀이 둘 이상일 때만
 const students = (await getCollection('members'))
@@ -50,7 +52,6 @@ const students = (await getCollection('members'))
 	.sort((a, b) => a.data.order - b.data.order)
 	.map((m) => ({ ...m.data, team: m.data.team ?? m.data.group }));
 const teams = [...Map.groupBy(students, (m) => m.team)].map(([name, people]) => ({ name, count: people.length }));
-const pad = (n: number) => String(n).padStart(2, '0');
 // 제목 뒤에 흐리게 까는 로고 (톱니가 회전함). 파일이 없으면 생략
 const mark = attachment('logo-transparent.svg');
 ---
@@ -60,7 +61,7 @@ const mark = attachment('logo-transparent.svg');
 		<HeroDetect slides={slides}>
 			<div class="title">
 				{mark && <Image class="mark" src={mark} width={480} height={480} alt="" loading="eager" />}
-				<h1>{LAB.fullName}</h1>
+				<h1>{home.data.title}</h1>
 			</div>
 			<div class="lead">
 				<Lead />
@@ -96,7 +97,7 @@ const mark = attachment('logo-transparent.svg');
 		</div>
 		<ul class="project-grid">
 			{
-				projects.slice(0, HOME_PROJECTS).map((p) => (
+				projects.slice(0, 6).map((p) => (
 					<li>
 						<a href={`/projects#${p.id}`}>
 							{p.cover && (
@@ -140,9 +141,9 @@ const mark = attachment('logo-transparent.svg');
 								<a href={t.href}>자세히</a>
 							</div>
 							{t.video ? (
-								<VideoThumb id={t.video} title={t.title} poster={attachment(t.image)} />
+								<VideoThumb id={t.video} title={t.title} poster={t.cover} />
 							) : (
-								attachment(t.image) && <Image src={attachment(t.image)!} alt={t.imageAlt ?? ''} widths={[480, 720, 960]} sizes="(max-width: 760px) 100vw, 640px" loading="lazy" />
+								t.cover && <Image src={t.cover} alt={t.imageAlt ?? ''} widths={[480, 720, 960]} sizes="(max-width: 760px) 100vw, 640px" loading="lazy" />
 							)}
 						</li>
 					))}
@@ -337,9 +338,6 @@ const mark = attachment('logo-transparent.svg');
 		display: grid;
 		grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
 		gap: 36px 24px;
-		margin: 0;
-		padding: 0;
-		list-style: none;
 	}
 	.project-grid a {
 		color: var(--text);
@@ -384,7 +382,7 @@ const mark = attachment('logo-transparent.svg');
 		padding: 36px;
 	}
 	.no {
-		color: var(--detect); /* 번호는 탐지 초록 (목업) */
+		color: var(--detect); /* 번호는 탐지 초록 */
 	}
 	.stack-text h3 {
 		margin: 10px 0 6px;
@@ -438,9 +436,9 @@ const mark = attachment('logo-transparent.svg');
 		font-weight: 500;
 	}
 	.teams button[aria-pressed='true'] {
-		border-color: var(--ink);
-		background: var(--ink);
-		color: var(--paper);
+		border-color: var(--text);
+		background: var(--text);
+		color: var(--bg);
 	}
 	.teams button[aria-pressed='true'] b {
 		color: inherit;

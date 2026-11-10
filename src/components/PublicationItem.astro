@@ -69,16 +69,15 @@ const parts = authors.split(new RegExp(`(${escaped.join('|')})`, 'g'));
 	.type {
 		align-self: start;
 		padding: 0.15rem 0;
-		border-radius: 0;
-		background: var(--accent-soft);
-		color: var(--accent);
+		background: var(--tag-bg);
+		color: var(--text);
 		font-size: 0.78rem;
 		font-weight: 700;
 		text-align: center;
 	}
 	.type.intl-journal {
-		background: var(--accent-soft);
-		color: var(--accent);
+		background: var(--tag-bg);
+		color: var(--text);
 	}
 	.type.domestic-journal,
 	.type.domestic-conference {
@@ -94,7 +93,6 @@ const parts = authors.split(new RegExp(`(${escaped.join('|')})`, 'g'));
 		margin-right: 0.4rem;
 		padding: 0 0.4rem;
 		border: 1px solid var(--focus);
-		border-radius: 0;
 		color: var(--warn);
 		font-size: 0.72rem;
 		font-weight: 700;

@@ -3,6 +3,7 @@
 // 사진: attachments/members/<이름>.jpg (없으면 이름 첫 글자)
 import { Image } from 'astro:assets';
 import { memberPhoto } from '../lib/attachments';
+import { decorScore } from '../lib/format';
 
 interface Props {
 	name: string;
@@ -10,8 +11,7 @@ interface Props {
 }
 const { name, research } = Astro.props;
 const photo = memberPhoto(name);
-// 이름마다 늘 같은 점수 (0.95~0.99). 장식용
-const score = 0.95 + ([...name].reduce((a, c) => a + c.charCodeAt(0), 0) % 5) / 100;
+const score = decorScore(name);
 ---
 
 <figure class="person">

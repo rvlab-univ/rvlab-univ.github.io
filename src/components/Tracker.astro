@@ -9,14 +9,13 @@
 </div>
 
 <script>
+	import { decorScore } from '../lib/format';
 	const LINE = 0.4; // 화면 위에서 이 비율보다 위로 올라간 제목 중 마지막 것이 대상
 	const PAD = 8;
 	const box = document.querySelector<HTMLElement>('[data-tracker]')!;
 	const label = box.querySelector('span')!;
 	const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 	const heads = [...document.querySelectorAll<HTMLElement>('.hero h1, main h1, main h2')].filter((h) => h.offsetParent);
-	// 제목마다 늘 같은 점수 (0.95~0.99). 장식용
-	const score = (t: string) => 0.95 + ([...t].reduce((a, c) => a + c.charCodeAt(0), 0) % 5) / 100;
 	const name = (h: HTMLElement) => {
 		const t = (h.textContent ?? '').replace(/\s+/g, ' ').trim();
 		return t.length > 24 ? t.slice(0, 23) + '…' : t;
@@ -55,7 +54,7 @@
 		if (next === active) return;
 		active = next;
 		const t = name(next);
-		label.textContent = `${t} ${score(t).toFixed(2)}`;
+		label.textContent = `${t} ${decorScore(t).toFixed(2)}`;
 		box.hidden = false;
 		place(true);
 		if (!reduce) {

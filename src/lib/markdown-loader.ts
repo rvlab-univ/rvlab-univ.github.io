@@ -81,11 +81,13 @@ export function linesOf(p: Paragraph): PhrasingContent[][] {
 	return lines.filter((line) => textOf(line));
 }
 
+// YouTube 주소의 호스트 + 영상 ID (ID가 첫 번째 괄호)
+const YOUTUBE_URL = String.raw`(?:www\.)?(?:youtu\.be\/|youtube\.com\/watch\?v=)([\w-]{11})`;
+
 // 문단 전체가 YouTube 주소 하나일 때 영상 ID
 export function youtubeId(node: RootContent) {
 	if (node.type !== 'paragraph') return undefined;
-	const m = textOf([node]).match(/^(?:https?:\/\/)?(?:www\.)?(?:youtu\.be\/|youtube\.com\/watch\?v=)([\w-]{11})\S*$/);
-	return m?.[1];
+	return textOf([node]).match(new RegExp(String.raw`^(?:https?:\/\/)?${YOUTUBE_URL}\S*$`))?.[1];
 }
 
 // 항목을 만들지 못할 때 어느 파일의 몇 번째 줄인지 알려준다
@@ -107,8 +109,10 @@ function rewriteFileLinks(body: string | undefined) {
 
 // YouTube 주소만 있는 줄 → 썸네일 + 재생 버튼 링크. [제목](주소) 형식이면 제목을 캡션으로 붙인다.
 // 빈 줄 없이 이어 쓴 영상 줄들은 한 문단이 되어 나란히 배치된다 (global.css 의 .yt).
-const YOUTUBE_LINE =
-	/^[ \t]*(?:\[([^\]]*)\]\()?<?https?:\/\/(?:www\.)?(?:youtu\.be\/|youtube\.com\/watch\?v=)([\w-]{11})[^\s)>]*>?\)?[ \t]*$/gm;
+const YOUTUBE_LINE = new RegExp(
+	String.raw`^[ \t]*(?:\[([^\]]*)\]\()?<?https?:\/\/${YOUTUBE_URL}[^\s)>]*>?\)?[ \t]*$`,
+	'gm',
+);
 const escapeHtml = (s: string) => s.replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
 
 function embedVideos(body: string | undefined) {

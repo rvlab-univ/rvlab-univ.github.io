@@ -140,19 +140,20 @@ export function parseResearch(doc: Doc): Entry[] {
 	});
 }
 
-const ROLES: Record<string, string> = {
+// 구성원 구분 (## 제목) → 데이터 값. content.config.ts 스키마도 이 목록을 쓴다
+export const ROLES = {
 	지도교수: 'professor',
 	박사과정: 'phd',
 	석사과정: 'ms',
 	학부연구생: 'undergrad',
 	졸업생: 'alumni',
-};
+} as const;
 
 // 구성원: ## 구분 / ### 지도교수 또는 팀 / - **이름** (영문) — 연구 주제
 export function parseMembers(doc: Doc): Entry[] {
 	const entries: Entry[] = [];
 	for (const group of splitSections(titled(doc).nodes, 2).sections) {
-		const role = ROLES[group.title];
+		const role = ROLES[group.title as keyof typeof ROLES];
 		if (!role) fail(doc, group.heading, `"${group.title}"은(는) 알 수 없는 구분입니다 (${Object.keys(ROLES).join(', ')})`);
 		const { intro, sections } = splitSections(group.nodes, 3);
 
@@ -195,7 +196,8 @@ export function parseMembers(doc: Doc): Entry[] {
 					const strong = p?.children.find((n) => n.type === 'strong');
 					if (!p || !strong) fail(doc, item, '학생 줄은 - **이름** — 연구 주제 형식이어야 합니다');
 					const name = textOf([strong]);
-					const rest = textOf([p]).slice(textOf([p]).indexOf(name) + name.length);
+					const line = textOf([p]);
+					const rest = line.slice(line.indexOf(name) + name.length);
 					const [, aliases, research] = rest.match(/^\s*(?:\(([^)]*)\))?\s*[—–-]?\s*(.*)$/s)!;
 					entries.push({
 						id: `${role}-${entries.length}`,
@@ -312,7 +314,7 @@ function parseDetections(doc: Doc, node: Doc['root']['children'][number], line: 
 	return items.map((item, i) => {
 		const m = item.match(/^(.+?)(?:\s+(0?\.\d+|1(?:\.0+)?))?\s*\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)\s*\)$/);
 		if (!m) fail(doc, node, `"${item}" — "이름 (왼쪽, 위, 너비, 높이)" 모양으로 적어주세요. 점수는 이름 뒤에 선택: LiDAR 0.93 (40, 0, 8, 12)`);
-		const box = [m[3], m[4], m[5], m[6]].map(Number) as Detection["box"];
+		const box = [m[3], m[4], m[5], m[6]].map(Number) as Detection['box'];
 		const [x, y, w, h] = box;
 		if (x + w > 100.5 || y + h > 100.5 || !w || !h) fail(doc, node, `"${item}" — 박스가 사진 밖으로 나갑니다. 좌표는 사진 기준 % (0~100)입니다`);
 		return { name: m[1].trim(), score: m[2] ? Number(m[2]) : +(0.98 - (i * 0.43) / Math.max(1, items.length - 1)).toFixed(2), box };
